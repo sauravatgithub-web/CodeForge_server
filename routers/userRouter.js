@@ -16,7 +16,8 @@ const router = express.Router();
 router.post('/verifyOTP', otpValidator(), validate, confirmOTP);
 
 // user must not be logged in
-router.post('/new', uploadUserPhoto,resizeUserPhoto,newUser);
+router.post('/verifyEmail', emailValidator(), validate, emailVerification);
+router.post('/new', uploadUserPhoto, resizeUserPhoto, newUser);
 router.post('/login', login);
 
 // user must be logged in

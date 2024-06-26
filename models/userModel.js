@@ -7,6 +7,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please tell us your name!']
   },
+  rollNumber: {
+    type: String,
+    required: [true, "Please provide a roll number"],
+    unique: true,
+  },
   email: {
     type: String,
     required: [true, 'Please provide your email'],
@@ -56,6 +61,14 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
     select: false
+  },
+  secretQuestion: {
+    type: String,
+    required: [true, "Please enter a secret question"],
+  },
+  secretAnswer: {
+    type: String,
+    required: [true, "Please enter a secret answer"],
   }
 });
 

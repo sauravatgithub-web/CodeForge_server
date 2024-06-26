@@ -3,6 +3,9 @@ import Question from '../models/questionModel.js'
 import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler } from '../utils/utility.js';
 import axios from 'axios';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const getAllQuestions = tryCatch(async(req, res) => {
     const allQuestions = await Question.find();
@@ -59,8 +62,8 @@ const submitCode = tryCatch(async(req, res, next) => {
     let stdout = question.answer.reduce((final, val) => final + val + "\n", "");
   
     const reqData = {
-        clientId : "d9d25794ff275a8191b15ed6ca286c16",
-        clientSecret : "515b5a21c2b86ce2ff548cff53beb8c5a79825651d51da28241c94bfa23c9f12",
+        clientId : process.env.ADMIN_ID,
+        clientSecret : process.env.ADMIN_SECRET,
         script : script,
         stdin : stdin,
         language : language,

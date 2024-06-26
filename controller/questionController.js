@@ -16,6 +16,25 @@ const getThisOne = tryCatch(async(req, res, next) => {
     return res.status(200).json({ success: true, question: question });
 });
 
+const createThisOne = tryCatch(async(req,res,next)=>{
+    const {title,description,tags,testCase,answer,constraints,time,space} = req.body;
+    if(!title || !description || !tags || !testCase || !answer || !constraints || !time || !space) 
+        return next(new ErrorHandler("Insufficient input",404));
+
+    const reqData = {
+        title,
+        description,
+        tags,
+        testCase,
+        answer,
+        constraints,
+        time,
+        space
+    }
+    const newQuestion = await Question.create(reqData);
+    return res.status(201).json({ sucess: true, data: newQuestion });
+})
+
 const runCode = tryCatch(async(req, res, next) => {
     const { script, stdin, language, versionIndex } = req.body;
     if(!script || !stdin || !language || !versionIndex) 

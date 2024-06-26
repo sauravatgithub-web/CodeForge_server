@@ -65,10 +65,12 @@ const userSchema = new mongoose.Schema({
   secretQuestion: {
     type: String,
     required: [true, "Please enter a secret question"],
+    required: true,
   },
   secretAnswer: {
     type: String,
     required: [true, "Please enter a secret answer"],
+    required: true,
   }
 });
 

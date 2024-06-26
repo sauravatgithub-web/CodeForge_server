@@ -122,4 +122,4 @@ const submitCode = tryCatch(async(req, res, next) => {
     }
   })
 
-export { getAllQuestions, getThisOne, runCode, submitCode }
+export { getAllQuestions, getThisOne, runCode, submitCode, createThisOne }

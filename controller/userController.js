@@ -69,6 +69,7 @@ const confirmOTP = tryCatch(async(req, res, next) => {
 })
 
 const newUser = tryCatch(async (req, res, next) => {
+  console.log("Hi");
   const {name, rollNumber, email, password, secretQuestion, secretAnswer } = req.body;
 
   if(!name || !rollNumber || !email || !password || !secretQuestion || !secretAnswer)

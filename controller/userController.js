@@ -117,9 +117,10 @@ const newUser = tryCatch(async (req, res, next) => {
   const user = await User.create({
       name,
       email,
-      role,
       password,
-      name, rollNumber, email, password, secretQuestion, secretAnswer
+      rollNumber,  
+      secretQuestion, 
+      secretAnswer
   });
 
   sendToken(res, user, 200, `Welcome to Code Forge`);

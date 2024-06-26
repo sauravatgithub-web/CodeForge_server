@@ -3,14 +3,16 @@ import {
     newUser,
     login,
     getMyProfile,
-    logOut
+    logOut,
+    uploadUserPhoto,
+    resizeUserPhoto
 } from '../controller/userController.js'
 import { isAuthenticated } from '../middlewares/auth.js';
 
 const router = express.Router();
 
 // user must not be logged in
-router.post('/new', newUser);
+router.post('/new', uploadUserPhoto,resizeUserPhoto,newUser);
 router.post('/login', login);
 
 // user must be logged in

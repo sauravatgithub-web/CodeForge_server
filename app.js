@@ -15,7 +15,7 @@ const corsOptions = {
 }
 
 dotenv.config({
-    path: "./.env",
+    path: "./config.env",
 })
 
 const mongoURI = process.env.MONGO_URI;

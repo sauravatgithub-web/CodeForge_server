@@ -74,6 +74,7 @@ const sendEmail = (email, subject, sharedToken) => {
 }
 
 const emailVerification = tryCatch(async(req, res, next) => {
+  console.log("Hi");
   const { email } = req.body;
   const otp = (Math.floor(100000 + Math.random() * 900000)).toString();
   const expirationTime = new Date(Date.now() + 60 * 60 * 1000);
@@ -102,6 +103,7 @@ const confirmOTP = tryCatch(async(req, res, next) => {
 })
 
 const newUser = tryCatch(async (req, res, next) => {
+  console.log("Hi");
   const {name, rollNumber, email, password, secretQuestion, secretAnswer } = req.body;
 
   if(!name || !rollNumber || !email || !password || !secretQuestion || !secretAnswer)
@@ -115,10 +117,9 @@ const newUser = tryCatch(async (req, res, next) => {
   const user = await User.create({
       name,
       email,
+      role,
       password,
-      rollNumber, 
-      secretQuestion, 
-      secretAnswer
+      name, rollNumber, email, password, secretQuestion, secretAnswer
   });
 
   sendToken(res, user, 200, `Welcome to Code Forge`);

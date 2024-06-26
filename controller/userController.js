@@ -74,6 +74,7 @@ const sendEmail = (email, subject, sharedToken) => {
 }
 
 const emailVerification = tryCatch(async(req, res, next) => {
+  console.log("Hi");
   const { email } = req.body;
   const otp = (Math.floor(100000 + Math.random() * 900000)).toString();
   const expirationTime = new Date(Date.now() + 60 * 60 * 1000);
@@ -114,10 +115,6 @@ const newUser = tryCatch(async (req, res, next) => {
   // }
 
   const user = await User.create({
-      name,
-      email,
-      role,
-      password,
       name, rollNumber, email, password, secretQuestion, secretAnswer
   });
 

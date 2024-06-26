@@ -1,6 +1,7 @@
 import express from 'express'
 import {
     emailVerification,
+    confirmOTP,
     newUser,
     login,
     getMyProfile,

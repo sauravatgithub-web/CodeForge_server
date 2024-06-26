@@ -5,6 +5,7 @@ import {
     login,
     getMyProfile,
     logOut,
+    confirmOTP,
     uploadUserPhoto,
     resizeUserPhoto
 } from '../controller/userController.js'

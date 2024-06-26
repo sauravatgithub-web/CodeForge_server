@@ -69,7 +69,10 @@ const confirmOTP = tryCatch(async(req, res, next) => {
 })
 
 const newUser = tryCatch(async (req, res, next) => {
-  const {name, email, role, password} = req.body;
+  const {name, rollNumber, email, role, password, secretQuestion, secretAnswer } = req.body;
+
+  if(!name || !rollNumber || !email || !role || !password || !secretQuestion || !secretAnswer)
+    return next(new ErrorHandler("Please fill all fields", 404));
 
   const file = req.file;
   if(file) {
@@ -77,11 +80,7 @@ const newUser = tryCatch(async (req, res, next) => {
   }
 
   const user = await User.create({
-      name,
-      email,
-      role,
-      password,
-      avatar,
+      name, rollNumber, email, role, password, avatar, secretQuestion, secretAnswer
   });
 
   sendToken(res, user, 200, `Welcome to Code Forge`);

@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt'
 import multer from 'multer'
 import User from '../models/userModel.js'
+import nodemailer from 'nodemailer'
+import dotenv from 'dotenv'
 import { cookieOption, sendToken } from '../utils/features.js';
 import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler } from '../utils/utility.js';
@@ -35,8 +37,7 @@ const resizeUserPhoto = tryCatch(async (req, res, next) => {
 
   next();
 });
-import nodemailer from 'nodemailer'
-import dotenv from 'dotenv'
+
 
 dotenv.config();
 
@@ -156,5 +157,4 @@ const logOut = tryCatch(async(req, res) => {
       });
 });
 
-export { newUser, login, getMyProfile, logOut, uploadUserPhoto, resizeUserPhoto }
-export { emailVerification, confirmOTP, newUser, login, getMyProfile, logOut }
+export { newUser, login, getMyProfile, logOut, emailVerification, confirmOTP,uploadUserPhoto, resizeUserPhoto }

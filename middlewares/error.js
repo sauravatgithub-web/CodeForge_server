@@ -26,7 +26,7 @@ const tryCatch = (passedFunc) => async (req, res, next) => {
     try {
         passedFunc(req, res, next);
     }
-    catch {
+    catch (error){
         next(error);
     }
 };

@@ -1,5 +1,6 @@
 import express from 'express'
 import {
+    emailVerification,
     newUser,
     login,
     getMyProfile,
@@ -8,8 +9,11 @@ import {
     resizeUserPhoto
 } from '../controller/userController.js'
 import { isAuthenticated } from '../middlewares/auth.js';
+import { emailValidator, otpValidator, validate } from '../lib/validator.js';
 
 const router = express.Router();
+
+router.post('/verifyOTP', otpValidator(), validate, confirmOTP);
 
 // user must not be logged in
 router.post('/new', uploadUserPhoto,resizeUserPhoto,newUser);

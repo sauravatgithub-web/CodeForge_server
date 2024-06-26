@@ -19,7 +19,7 @@ dotenv.config({
 })
 
 const mongoURI = process.env.MONGO_URI;
-const port = 4173;
+const port = process.env.PORT || 4173;
 
 connectDB(mongoURI);
 

@@ -47,7 +47,6 @@ const sendOTP = async(email, message, next) => {
   try {
       await sendEmail(email, message, sharedToken);
       emailTokens[email] = {otp, expirationTime};
-      console.log(otp, expirationTime);
   } 
   catch (error) {
       next(new ErrorHandler("Failed to send OTP email", 500));

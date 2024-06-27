@@ -66,13 +66,13 @@ const runCode = tryCatch(async(req, res, next) => {
 })
 
 const submitCode = tryCatch(async(req, res, next) => {
-    const { script, language, versionIndex } = req.body;
+    const { userId, script, language, versionIndex } = req.body;
     const questionId = req.params.id;
-    if(!questionId || !script || !language || !versionIndex) 
-        return next(new ErrorHandler("Insufficient input", 404));
+    if(!userId || !questionId || !script || !language || !versionIndex) 
+        return next(new ErrorHandler("Please fill all fields", 404));
   
-    // const user = await User.findById(userId);
-    // if(!user) return next(new ErrorHandler("Invalid id", 404));
+    const user = await User.findById(userId);
+    if(!user) return next(new ErrorHandler("Invalid id", 404));
   
     const question = await Question.findById(questionId);
     if(!question) return next(new ErrorHandler("Invalid id", 404));
@@ -110,7 +110,8 @@ const submitCode = tryCatch(async(req, res, next) => {
         //     return res.status(data.statusCode).json({ succes: false, message: "Memory Limit Exceeded" });
         // }
         
-        // user.questionsSolved.push(question._id);
+        user.questionsSolved.push(question._id);
+        await user.save();
         return res.status(200).json({ success: true, message: "All testcases passed successfully" });
     }
     else {

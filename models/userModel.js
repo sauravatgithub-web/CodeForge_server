@@ -54,16 +54,33 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter a secret answer"],
     required: true,
+  },
+  github: {
+    type: String,
+    default: "",
+  },
+  linkedin: {
+    type: String,
+    default: "",
+  },
+  leetcode: {
+    type: String,
+    default: "",
+  },
+  codechef: {
+    type: String,
+    default: "",
+  },
+  codeforces: {
+    type: String,
+    default: "",
   }
 });
 
 // using middleware will help in not saving the confirm password
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password') || this.isNew) return next();
-  this.passwordConfirm = undefined;
-  
+  if (!this.isModified('password')) return next();  
   this.password = await hash(this.password, 10);
-  next();
 });
 
 const User = mongoose.model('User', userSchema);

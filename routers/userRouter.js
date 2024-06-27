@@ -1,9 +1,11 @@
 import express from 'express'
 import {
     emailVerification,
+    forgetPassword,
     confirmOTP,
     newUser,
     login,
+    setNewPassword,
     getMyProfile,
     logOut,
     uploadUserPhoto,
@@ -20,6 +22,8 @@ router.post('/verifyOTP', otpValidator(), validate, confirmOTP);
 router.post('/verifyEmail', emailValidator(), validate, emailVerification);
 router.post('/new', uploadUserPhoto, resizeUserPhoto, newUser);
 router.post('/login', login);
+router.post('/forgetPassword', forgetPassword);
+router.post('/setPassword', setNewPassword);
 
 // user must be logged in
 router.use(isAuthenticated); 

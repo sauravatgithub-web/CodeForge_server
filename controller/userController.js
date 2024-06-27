@@ -83,7 +83,12 @@ const newUser = tryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Please fill all fields", 404));
 
   const user = await User.create({
-      name, rollNumber, email, password, secretQuestion, secretAnswer
+      name,
+      email,
+      password,
+      rollNumber,  
+      secretQuestion, 
+      secretAnswer
   });
 
   sendToken(res, user, 200, `Welcome to Code Forge`);

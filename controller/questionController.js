@@ -20,7 +20,7 @@ const getThisOne = tryCatch(async(req, res, next) => {
 });
 
 const createThisOne = tryCatch(async(req,res,next)=>{
-    const {title,description,tags,testCase,answer,constraints,time,space} = req.body;
+    const {title, description, tags, testCase, answer, constraints, time, space} = req.body;
     if(!title || !description || !tags || !testCase || !answer || !constraints || !time || !space) 
         return next(new ErrorHandler("Insufficient input",404));
 
@@ -44,13 +44,13 @@ const runCode = tryCatch(async(req, res, next) => {
         return next(new ErrorHandler("Insufficient input", 404));
 
     const reqData = {
-        "clientId" : process.env.JDOODLE_CLIENT_ID,
-        "clientSecret" : process.env.JDOODLE_CLIENT_SECRET,
-        "script" : JSON.stringify(script),
-        "stdin" : stdin,
-        "language" : language,
-        "versionIndex" : versionIndex,
-        "compileOnly" : false
+        clientId : process.env.JDOODLE_CLIENT_ID,
+        clientSecret : process.env.JDOODLE_CLIENT_SECRET,
+        script : JSON.stringify(script),
+        stdin : stdin,
+        language : language,
+        versionIndex : versionIndex,
+        compileOnly : false
     }
 
     const response = await axios.post("https://api.jdoodle.com/v1/execute", reqData, {
@@ -99,16 +99,15 @@ const submitCode = tryCatch(async(req, res, next) => {
     if(response.status !== 200) return next(new ErrorHandler(`${response.statusText}`, response.status));
   
     const data = response.data;
-    console.log(data);
     data.output = data.output + "\n";
   
     if(data.output === stdout) {
-        // if(data.cpuTime >= question.time) {
-        //     return res.status(data.statusCode).json({ success: false, message: "Time Limit Exceeded" });
-        // }
-        // if(data.memory >= question.space) {
-        //     return res.status(data.statusCode).json({ succes: false, message: "Memory Limit Exceeded" });
-        // }
+        if(data.cpuTime >= question.time) {
+            return res.status(data.statusCode).json({ success: false, message: "Time Limit Exceeded" });
+        }
+        if(data.memory >= question.space) {
+            return res.status(data.statusCode).json({ succes: false, message: "Memory Limit Exceeded" });
+        }
         
         user.questionsSolved.push(question._id);
         await user.save();
@@ -121,6 +120,6 @@ const submitCode = tryCatch(async(req, res, next) => {
         }
         return res.status(200).json({ sucess: false, output })
     }
-  })
+})
 
 export { getAllQuestions, getThisOne, runCode, submitCode, createThisOne }

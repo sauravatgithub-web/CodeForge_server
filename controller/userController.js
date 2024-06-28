@@ -54,15 +54,28 @@ const sendOTP = async(email, message, next) => {
 }
 
 const emailVerification = tryCatch(async(req, res, next) => {
-  const { email } = req.body;
+  const { email, resetting } = req.body;
+  if(!email) return next(new ErrorHandler("Please fill your email", 404));
+  let secretQuestion = "";
+  
+  if(resetting) {
+    const user = await User.findOne({ email });
+    if(!user) return next(new ErrorHandler("User do not exists", 404));
+    secretQuestion = user.secretQuestion;
+  }
+
   sendOTP(email, "Email Verification", next);
-  res.status(200).json({ success: true, message: "An OTP has been sent to your email." });
+  res.status(200).json({ success: true, secretQuestion: secretQuestion, message: "An OTP has been sent to your email." });
 })
 
 const confirmOTP = tryCatch(async(req, res, next) => {
-  const { email, otp } = req.body;
-  if(!email || !otp)
-    return next(new ErrorHandler("Please fill all fields", 404));
+  const { email, resetting, otp, secretAnswer } = req.body;
+  if(!email || !otp) return next(new ErrorHandler("Please fill all fields", 404));
+
+  if(resetting && !secretAnswer) return next(new ErrorHandler("Please fill secret answer", 404)); 
+
+  const user = await User.findOne({ email });
+  if(resetting && (secretAnswer !== user.secretAnswer)) return next(new ErrorHandler("Please give coreect answer", 404));
 
   const sharedOTP = emailTokens[email];
 
@@ -102,7 +115,7 @@ const login = tryCatch(async(req, res, next) => {
   const user = await User.findOne({ rollNumber }).select("+password");
   if(!user) return next(new ErrorHandler("Invalid credentials", 404));
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  const isMatch = bcrypt.compare(password, user.password);
   if(!isMatch) return next(new ErrorHandler("Invalid credentials", 404));
 
   sendToken(res, user, 200, `Welcome back, ${user.name}`);
@@ -110,33 +123,29 @@ const login = tryCatch(async(req, res, next) => {
 })
 
 const forgetPassword = tryCatch(async(req, res, next) => {
-  const { rollNumber, secretQuestion, secretAnswer } = req.body;
-  if(!rollNumber || !secretQuestion || !secretAnswer) 
+  const { email } = req.body;
+  if(!email) 
     return next(new ErrorHandler("Please fill all the fields", 404));
 
-  const user = await User.findOne({ rollNumber }).select("+password");
+  const user = await User.findOne({ email }).select("+password");
   if(!user) return next(new ErrorHandler("User do not exists", 404));
-
-  const isMatch = (user.secretQuestion == secretQuestion && user.secretAnswer == secretAnswer);
-  if(!isMatch) return next(new ErrorHandler("Secret question or answer do not matches", 404));
   
-  const email = rollNumber.toString() + "@iitbbs.ac.in";
   sendOTP(email, "Forget Password", next);
-  return res.status(200).json({ success: true });
+  return res.status(200).json({ success: true, secretQuestion: user.secretQuestion });
 })
 
 const setNewPassword = tryCatch(async(req, res, next) => {
-  const { rollNumber, password } = req.body;
-  if(!rollNumber || !password) return next(new ErrorHandler("Please fill all the fields", 404));
+  const { email, password } = req.body;
+  if(!email|| !password) return next(new ErrorHandler("Please fill all the fields", 404));
 
-  const user = await User.findOne({ rollNumber });
+  const user = await User.findOne({ email });
   if(!user) return next(new ErrorHandler("User do not exists", 404));
 
   const newPassword = await hash(password, 10);
   user.password = newPassword;
   await user.save();
 
-  return res.status(200).json({ success: true, user: user });
+  return res.status(200).json({ success: true, user: user, message: "Password has been updated." });
 })
 
 const getMyProfile = tryCatch(async(req, res) => {

@@ -31,6 +31,9 @@ const questionSchema = new mongoose.Schema({
       message: 'The number of answers must match the number of test cases!'
     }
   },
+  hints: {
+    type: [String],
+  },
   constraints: {
     type: String,
     required: [true, 'Please provide the constraints for the question!']

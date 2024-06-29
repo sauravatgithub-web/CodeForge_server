@@ -7,8 +7,8 @@ import {
 
 const router = express.Router();
 
-router.get('/getSubmission', getAllSubmission);
-router.get('/:name', getThisSubmission);
+router.get('/getAllSubmission', getAllSubmission);
+router.get('/getThisSubmission/:name', getThisSubmission);
 router.post('/createSubmission',createSubmission);
 
 export default router;

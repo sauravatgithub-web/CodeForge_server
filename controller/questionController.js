@@ -116,6 +116,8 @@ const submitCode = tryCatch(async(req, res, next) => {
         // to create Submission
         const submissionData = {
             name : questionId+userId,
+            time :data.cpuTime,
+            space:data.memory,
             script
         }
         await createSubmission(submissionData);

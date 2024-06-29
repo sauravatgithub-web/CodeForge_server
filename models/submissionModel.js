@@ -9,6 +9,14 @@ const submissionSchema = new mongoose.Schema({
     type: String,
     required:[true,"Please input the script"]
   },
+  time: {
+    type: String,
+    required: [true, 'Please provide the expected time complexity!']
+  },
+  space: {
+    type: String,
+    required: [true, 'Please provide the expected space complexity!']
+  },
   timestamp: {
     type: Date,
     Default : Date.now

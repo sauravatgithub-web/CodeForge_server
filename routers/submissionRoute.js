@@ -1,14 +1,14 @@
 import express from 'express'
 import {
     getAllSubmission, 
-    getThisOne, 
-    createThisOne
+    getThisSubmission, 
+    createSubmission
 } from '../controller/submissionController.js'
 
 const router = express.Router();
 
 router.get('/getSubmission', getAllSubmission);
-router.get('/:name', getThisOne);
-router.post('/createSubmission',createThisOne);
+router.get('/:name', getThisSubmission);
+router.post('/createSubmission',createSubmission);
 
 export default router;

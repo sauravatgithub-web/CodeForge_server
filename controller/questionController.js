@@ -1,5 +1,6 @@
 import User from '../models/userModel.js';
 import Question from '../models/questionModel.js'
+import {createSubmission} from '../controller/submissionController.js'
 import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler } from '../utils/utility.js';
 import axios from 'axios';
@@ -12,14 +13,14 @@ const getAllQuestions = tryCatch(async(req, res) => {
     return res.status(200).json({ success: true, questions: allQuestions });
 });
 
-const getThisOne = tryCatch(async(req, res, next) => {
+const getThisQuestion = tryCatch(async(req, res, next) => {
     const id = req.params.id;
     const question = await Question.findById(id);
     if(!question) return next(new ErrorHandler("Incorrect id", 404));
     return res.status(200).json({ success: true, question: question });
 });
 
-const createThisOne = tryCatch(async(req,res,next)=>{
+const createQuestion = tryCatch(async(req,res,next)=>{
     const {title, description, tags, testCase, answer, hints, constraints, time, space} = req.body;
     if(!title || !description || !tags || !testCase || !answer || !hints || !constraints || !time || !space) 
         return next(new ErrorHandler("Insufficient input",404));
@@ -108,8 +109,17 @@ const submitCode = tryCatch(async(req, res, next) => {
             return res.status(data.statusCode).json({ succes: false, message: "Memory Limit Exceeded" });
         }
         
+        // to save solved question in user
         user.questionsSolved.push(question._id);
         await user.save();
+
+        // to create Submission
+        const submissionData = {
+            name : questionId+userId,
+            script
+        }
+        await createSubmission(submissionData);
+
         return res.status(200).json({ success: true, message: "All testcases passed successfully" });
     }
     else {
@@ -121,4 +131,4 @@ const submitCode = tryCatch(async(req, res, next) => {
     }
 })
 
-export { getAllQuestions, getThisOne, runCode, submitCode, createThisOne }
+export { getAllQuestions, getThisQuestion, runCode, submitCode, createQuestion }

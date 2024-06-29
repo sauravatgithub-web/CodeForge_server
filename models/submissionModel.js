@@ -5,7 +5,7 @@ const submissionSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please input the name!']
   },
-  submission: {
+  script: {
     type: String,
     required:[true,"Please input the script"]
   },

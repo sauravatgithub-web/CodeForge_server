@@ -44,25 +44,24 @@ const runCode = tryCatch(async(req, res, next) => {
         return next(new ErrorHandler("Insufficient input", 404));
 
     const reqData = {
-        clientId : process.env.JDOODLE_CLIENT_ID,
-        clientSecret : process.env.JDOODLE_CLIENT_SECRET,
-        script : JSON.stringify(script),
+        clientId : process.env.ADMIN_ID,
+        clientSecret : process.env.ADMIN_SECRET,
+        script : script,
         stdin : stdin,
         language : language,
         versionIndex : versionIndex,
         compileOnly : false
     }
-
+    // console.log(reqData);
     const response = await axios.post("https://api.jdoodle.com/v1/execute", reqData, {
         headers: {
             "Content-type": "application/json",
         },
     })
-
     if(response.status !== 200) return next(new ErrorHandler(`${response.statusText}`, response.status));
 
-    const data = await response.json();
-    return res.status(200).json({ sucess: true, data: data })
+    const data = response.data;
+    return res.status(200).json({ success: true, data: data });
 })
 
 const submitCode = tryCatch(async(req, res, next) => {
@@ -89,7 +88,6 @@ const submitCode = tryCatch(async(req, res, next) => {
         versionIndex : versionIndex,
         compileOnly : false
     }
-  
     const response = await axios.post("https://api.jdoodle.com/v1/execute", reqData, {
         headers: {
             "Content-Type": "application/json",

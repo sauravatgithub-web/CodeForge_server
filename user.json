@@ -1,0 +1,38 @@
+[
+    {
+        "name" : "Suprit Naik",
+        "email" : "22CS01018@iitbbs.ac.in",
+        "password":"pass@1233",
+        "secretQuestion":"What is this",
+        "secretAnswer":"This is it",
+        "rollNumber":"22CS01018",
+        "photo":"Image1.jpg"
+    },
+    {
+        "name" : "Makarandh",
+        "email" : "22CS01002@iitbbs.ac.in",
+        "password":"pass@1233",
+        "secretQuestion":"What is this",
+        "secretAnswer":"This is it",
+        "rollNumber":"22CS01002",
+        "photo":"Image2.jpg"
+    },
+    {
+        "name" : "Ayush",
+        "email" : "22CS01001@iitbbs.ac.in",
+        "password":"pass@1233",
+        "secretQuestion":"What is this",
+        "secretAnswer":"This is it",
+        "rollNumber":"22CS01001",
+        "photo":"Image3.jpg"
+    },
+    {
+        "name" : "Saurav",
+        "email" : "22CS01010@iitbbs.ac.in",
+        "password":"pass@1233",
+        "secretQuestion":"What is this",
+        "secretAnswer":"This is it",
+        "rollNumber":"22CS01010",
+        "photo":"Image4.jpg"
+    }
+]

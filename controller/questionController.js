@@ -20,8 +20,8 @@ const getThisOne = tryCatch(async(req, res, next) => {
 });
 
 const createThisOne = tryCatch(async(req,res,next)=>{
-    const {title, description, tags, testCase, answer, constraints, time, space} = req.body;
-    if(!title || !description || !tags || !testCase || !answer || !constraints || !time || !space) 
+    const {title, description, tags, testCase, answer, hints, constraints, time, space} = req.body;
+    if(!title || !description || !tags || !testCase || !answer || !hints || !constraints || !time || !space) 
         return next(new ErrorHandler("Insufficient input",404));
 
     const reqData = {
@@ -30,6 +30,7 @@ const createThisOne = tryCatch(async(req,res,next)=>{
         tags,
         testCase,
         answer,
+        hints,
         constraints,
         time,
         space

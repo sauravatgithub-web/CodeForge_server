@@ -15,12 +15,14 @@ const getThisSubmission = tryCatch(async(req, res, next) => {
 });
 
 const createSubmission = tryCatch(async(req,res,next)=>{
-    const {name,submission} = req.body;
-    if(!name || !submission ) return next(new ErrorHandler("Insufficient input",404));
+    const {name,script,time,space} = req.body;
+    if(!name || !script || !time || !space ) return next(new ErrorHandler("Insufficient input",404));
 
     const reqData = {
         name,
-        submission
+        script,
+        time,
+        space
     }
 
     const newSubmission = await Submission.create(reqData);

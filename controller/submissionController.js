@@ -9,14 +9,18 @@ const getAllSubmission = tryCatch(async(req, res) => {
 
 const getThisSubmission = tryCatch(async(req, res, next) => {
     const name = req.params.name;
-    const submission = await Submission.find({name});
+    const submission = await Submission.find({name}).toArray();
     if(!submission) return next(new ErrorHandler("Incorrect name", 404));
     return res.status(200).json({ success: true, submission: submission });
 });
 
-const createSubmission = tryCatch(async({name, time, space, script})=>{
-    const submission = {
-        name, time, space, script
+const createSubmission = tryCatch(async(req,res,next)=>{
+    const {name,submission} = req.body;
+    if(!name || !submission ) return next(new ErrorHandler("Insufficient input",404));
+
+    const reqData = {
+        name,
+        submission
     }
     await Submission.create(submission);
 })

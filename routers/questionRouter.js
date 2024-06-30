@@ -1,18 +1,18 @@
 import express from 'express'
 import {
     getAllQuestions,
-    getThisOne,
+    getThisQuestion,
     runCode,
     submitCode,
-    createThisOne
+    createQuestion
 } from '../controller/questionController.js'
 
 const router = express.Router();
 
 router.get('/getQuestions', getAllQuestions);
-router.get('/:id', getThisOne);
+router.get('/:id', getThisQuestion);
 router.post('/runCode/:id', runCode);
 router.post('/submitCode/:id', submitCode);
-router.post('/createQuestion',createThisOne);
+router.post('/createQuestion',createQuestion);
 
 export default router;

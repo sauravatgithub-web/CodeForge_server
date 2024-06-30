@@ -1,6 +1,6 @@
 import User from '../models/userModel.js';
 import Question from '../models/questionModel.js'
-import {createSubmission} from '../controller/submissionController.js'
+import { createSubmission } from '../controller/submissionController.js'
 import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler } from '../utils/utility.js';
 import axios from 'axios';
@@ -110,14 +110,16 @@ const submitCode = tryCatch(async(req, res, next) => {
         }
         
         // to save solved question in user
-        user.questionsSolved.push(question._id);
-        await user.save();
+        if(!user.questionsSolved.includes(question._id)) {
+            user.questionsSolved.push(question._id);
+            await user.save();
+        }
 
         // to create Submission
         const submissionData = {
             name : questionId+userId,
-            time :data.cpuTime,
-            space:data.memory,
+            time : data.cpuTime,
+            space: data.memory,
             script
         }
         await createSubmission(submissionData);

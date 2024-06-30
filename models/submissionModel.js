@@ -19,7 +19,7 @@ const submissionSchema = new mongoose.Schema({
   },
   timestamp: {
     type: Date,
-    Default : Date.now
+    default : Date.now
   }
 });
 

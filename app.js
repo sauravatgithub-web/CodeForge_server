@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import userRoute from './routers/userRouter.js';
 import questionRoute from './routers/questionRouter.js';
 import submissionRoute from './routers/submissionRouter.js';
+import labRoute from './routers/labRouter.js';
 import { errorMiddleware } from './middlewares/error.js';
 
 const corsOptions = {
@@ -34,6 +35,7 @@ app.use(cors(corsOptions));
 app.use('/api/v1/user', userRoute);
 app.use('/api/v1/question', questionRoute);
 app.use('/api/v1/submission', submissionRoute);
+app.use('/api/v1/lab', labRoute);
 
 app.get('/', (req, res) => {
     res.send("This is IIT BBS");

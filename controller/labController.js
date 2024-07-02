@@ -14,12 +14,29 @@ const getThisLab = tryCatch(async(req, res, next) => {
     return res.status(200).json({ success: true, lab:lab });
 });
 
-const createLab = tryCatch(async({topic,batch,duration})=>{
+const createLab = tryCatch(async(req, res, next) => {
+    const { topic, batch, duration, date } = req.body;
+    if(!topic || !batch || !duration) return next(new ErrorHandler("Insufficient fileds", 404));
     const newLab = {
-        topic,batch,duration
+        topic, batch, duration, date
     }
-    await Lab.create(newLab);
+    const lab = await Lab.create(newLab);
+    return res.status(200).json({ success: true, lab: lab });
+})
+
+const updateLab = tryCatch(async(req, res, next) => {
+    const { labId, questionArray } = req.body;
+    if(!labId || !questionArray) return next(new ErrorHandler("Insufficient fields", 404));
+
+    const lab = await Lab.findById(labId);
+    if(!lab) return next(new ErrorHandler("Incorrect labId", 404));
+
+    lab.questions = questionArray;
+    console.log(lab);
+    await lab.save();
+
+    res.status(200).json({ success: true, lab: lab });
 })
 
 
-export { getAllLabs, getThisLab, createLab }
+export { getAllLabs, getThisLab, createLab, updateLab }

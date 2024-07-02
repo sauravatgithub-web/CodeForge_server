@@ -1,31 +1,31 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 const questionSchema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, 'Please give a title to the question!']
   },
-  description : {
-    type : String,
-    required: [true, 'Please provide the question description!'] 
+  description: {
+    type: String,
+    required: [true, 'Please provide the question description!']
   },
-  tags : {
-    type : [String],
+  tags: {
+    type: [String],
     required: [true, 'Please provide tags']
   },
-  testCase : {
-    type : [String],
+  testCase: {
+    type: [String],
     validate: {
-        validator: (arr) => arr.length >= 5,
-        message: 'Please provide atleast 5 test cases!'
+      validator: (arr) => arr.length >= 5,
+      message: 'Please provide atleast 5 test cases!'
     },
     required: [true, 'Please provide test cases!']
   },
-  answer : {
-    type : [String],
+  answer: {
+    type: [String],
     required: [true, 'Please provide the answer of test cases!'],
     validate: {
-      validator: function(arr) {
+      validator: function (arr) {
         return arr.length === this.testCase.length;
       },
       message: 'The number of answers must match the number of test cases!'

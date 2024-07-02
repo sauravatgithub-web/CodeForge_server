@@ -11,6 +11,7 @@ const getThisSubmission = tryCatch(async(req, res, next) => {
     const name = req.params.name;
     const submission = await Submission.find({name});
     if(!submission) return next(new ErrorHandler("Incorrect name", 404));
+    submission.reverse();
     return res.status(200).json({ success: true, submission: submission });
 });
 

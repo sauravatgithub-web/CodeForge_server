@@ -1,6 +1,7 @@
 import bcrypt, { hash } from 'bcrypt'
 import multer from 'multer'
 import User from '../models/userModel.js'
+import Teacher from '../models/teacherModel.js'
 import dotenv from 'dotenv'
 import { cookieOption, sendToken } from '../utils/features.js';
 import { tryCatch } from '../middlewares/error.js';
@@ -8,6 +9,7 @@ import { ErrorHandler, sendEmail } from '../utils/utility.js';
 
 dotenv.config();
 const emailTokens = {};
+let myUser;
 const multerStorage = multer.memoryStorage();
 
 const multerFilter = (req, file, cb) => {
@@ -64,8 +66,13 @@ const emailVerification = tryCatch(async(req, res, next) => {
     secretQuestion = user.secretQuestion;
   }
 
+  let role;
+
+  if(email[0] === '2') role = "student";
+  else role = "teacher";
+
   sendOTP(email, "Email Verification", next);
-  res.status(200).json({ success: true, secretQuestion: secretQuestion, message: "An OTP has been sent to your email." });
+  res.status(200).json({ success: true, role: role, secretQuestion: secretQuestion, message: "An OTP has been sent to your email." });
 })
 
 const confirmOTP = tryCatch(async(req, res, next) => {
@@ -89,35 +96,58 @@ const confirmOTP = tryCatch(async(req, res, next) => {
 })
 
 const newUser = tryCatch(async (req, res, next) => {
-  const {name, rollNumber, email, password, secretQuestion, secretAnswer } = req.body;
+  const { name, email, password, secretQuestion, secretAnswer } = req.body;
+  console.log("Hi");
 
-  if(!name || !rollNumber || !email || !password || !secretQuestion || !secretAnswer)
+  if (!name || !email || !password || !secretQuestion || !secretAnswer) {
     return next(new ErrorHandler("Please fill all fields", 404));
+  }
 
-  const user = await User.create({
-      name,
-      email,
-      password,
-      rollNumber,  
-      secretQuestion, 
-      secretAnswer
-  });
+  let user;
 
-  sendToken(res, user, 200, `Welcome to Code Forge`);
+  try {
+    if (email[0] === '2') {
+      console.log("student");
+      const index = email.indexOf('@');
+      const rollNumber = email.slice(0, index);
+
+      user = await User.create({
+        name, email, password, rollNumber, secretQuestion, secretAnswer
+      });
+    } else {
+      console.log("teacher");
+      user = await Teacher.create({ 
+        name, email, password, secretQuestion, secretAnswer 
+      });
+    }
+
+    console.log(user); // Log the created user
+
+    // Send token and welcome message
+    sendToken(res, user, 200, `Welcome to Code Forge`);
+
+  } catch (error) {
+    console.error('Error creating user:', error);
+    return next(new ErrorHandler("An error occurred while creating the user", 500));
+  }
 });
 
 const login = tryCatch(async(req, res, next) => {
-  const {rollNumber, password} = req.body;
-  if (!rollNumber || !password) {
+  const {email, password} = req.body;
+  if (!email || !password) {
       return next(new ErrorHandler("Please fill all the fields", 404));
   }
 
-  const user = await User.findOne({ rollNumber }).select("+password");
+  let user;
+  if(email[0] === '2') user = await User.findOne({ email }).select("+password"); 
+  else user = await Teacher.findOne({ email }).select("+password");
+ 
   if(!user) return next(new ErrorHandler("Invalid credentials", 404));
 
   const isMatch = bcrypt.compare(password, user.password);
   if(!isMatch) return next(new ErrorHandler("Invalid credentials", 404));
 
+  myUser = user;
   sendToken(res, user, 200, `Welcome back, ${user.name}`);
   return user;
 })
@@ -149,12 +179,13 @@ const setNewPassword = tryCatch(async(req, res, next) => {
 })
 
 const getMyProfile = tryCatch(async(req, res) => {
-  const user = await User.findById(req.user);  
+  const user = myUser;
+
   res.status(200).json({
       success: true,
       user
   })
-});
+}); 
 
 const logOut = tryCatch(async(req, res) => {
   return res

@@ -8,7 +8,6 @@ const labSchema = new mongoose.Schema({
     batch: {
         type: String,
         required: [true, "Please enter a batch"],
-        unique: true,
     },
     questions: [
         {

@@ -1,5 +1,6 @@
 import User from '../models/userModel.js';
-import Question from '../models/questionModel.js'
+import Question from '../models/questionModel.js';
+import Teacher from '../models/teacherModel.js';
 import { createSubmission } from '../controller/submissionController.js'
 import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler } from '../utils/utility.js';
@@ -20,10 +21,28 @@ const getThisQuestion = tryCatch(async(req, res, next) => {
     return res.status(200).json({ success: true, question: question });
 });
 
-const createQuestion = tryCatch(async(req,res,next)=>{
-    const {title, description, tags, testCase, answer, hints, constraints, time, space} = req.body;
-    if(!title || !description || !tags || !testCase || !answer || !hints || !constraints || !time || !space) 
+const getTeacherQuestions = tryCatch(async(req, res, next) => {
+    const id = req.params.id;
+    const teacher = await Teacher.findById(id);
+    if(!teacher) return next(new ErrorHandler("Incorrect id", 404));
+
+    let myQuestions = [];
+    const questionPromises = teacher.questions.map(async (id) => {
+        return await Question.findById(id);
+    });
+    
+    myQuestions = await Promise.all(questionPromises);
+
+    return res.status(200).json({ success: true, questions: myQuestions });
+});
+
+const createQuestion = tryCatch(async(req, res, next)=>{
+    const {title, description, tags, testCase, answer, hints, constraints, time, space, teacherId} = req.body;
+    if(!title || !description || !tags || !testCase || !answer || !hints || !constraints || !time || !space || !teacherId) 
         return next(new ErrorHandler("Insufficient input",404));
+
+    const teacher = await Teacher.findById(teacherId);
+    if(!teacher) return next(new ErrorHandler("Wrong teacher id", 404));
 
     const reqData = {
         title,
@@ -37,7 +56,33 @@ const createQuestion = tryCatch(async(req,res,next)=>{
         space
     }
     const newQuestion = await Question.create(reqData);
-    return res.status(201).json({ sucess: true, data: newQuestion });
+    teacher.questions.push(newQuestion._id);
+    await teacher.save();
+
+    return res.status(200).json({ sucess: true, data: newQuestion });
+})
+
+const updateQuestion = tryCatch(async(req, res, next)=>{
+    const {title, description, tags, testCase, answer, hints, constraints, time, space, questionId} = req.body;
+    if(!title || !description || !tags || !testCase || !answer || !hints || !constraints || !time || !space || !questionId) 
+        return next(new ErrorHandler("Insufficient input",404));
+    
+    console.log(1);
+    const question = await Question.findById(questionId);
+    if(!question) return next(new ErrorHandler("Incorrect question id", 404));
+
+    console.log(2);
+    const reqData = {
+        title, description, tags, testCase, answer, hints, constraints, time, space
+    }
+
+    console.log(3);
+    Object.keys(reqData).forEach(key => {
+        question[key] = reqData[key];
+    });
+    await question.save();
+
+    return res.status(200).json({ sucess: true, data: question });
 })
 
 const runCode = tryCatch(async(req, res, next) => {
@@ -135,4 +180,4 @@ const submitCode = tryCatch(async(req, res, next) => {
     }
 })
 
-export { getAllQuestions, getThisQuestion, runCode, submitCode, createQuestion }
+export { getAllQuestions, getThisQuestion, runCode, submitCode, createQuestion, updateQuestion, getTeacherQuestions }

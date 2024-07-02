@@ -74,6 +74,9 @@ const userSchema = new mongoose.Schema({
   codeforces: {
     type: String,
     default: "",
+  },
+  batch: {
+    type: String,
   }
 });
 

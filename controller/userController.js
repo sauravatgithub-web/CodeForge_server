@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 import { cookieOption, sendToken } from '../utils/features.js';
 import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler, sendEmail } from '../utils/utility.js';
+import Batch from '../models/batch.js'
 
 dotenv.config();
 const emailTokens = {};
@@ -97,7 +98,6 @@ const confirmOTP = tryCatch(async(req, res, next) => {
 
 const newUser = tryCatch(async (req, res, next) => {
   const { name, email, password, secretQuestion, secretAnswer } = req.body;
-  console.log("Hi");
 
   if (!name || !email || !password || !secretQuestion || !secretAnswer) {
     return next(new ErrorHandler("Please fill all fields", 404));
@@ -107,15 +107,23 @@ const newUser = tryCatch(async (req, res, next) => {
 
   try {
     if (email[0] === '2') {
-      console.log("student");
       const index = email.indexOf('@');
       const rollNumber = email.slice(0, index);
+      const year = email.slice(0, 2);
+      const batchName = year + "BTECH";
 
       user = await User.create({
-        name, email, password, rollNumber, secretQuestion, secretAnswer
+        name, email, password, rollNumber, secretQuestion, secretAnswer, batch : batchName
       });
-    } else {
-      console.log("teacher");
+
+      let batch = await Batch.findOne({ name: batchName });
+      if(!batch) {
+        batch = await Batch.create({ name: batchName });
+      }
+      batch.students.push(user._id);
+      await batch.save();
+    } 
+    else {
       user = await Teacher.create({ 
         name, email, password, secretQuestion, secretAnswer 
       });

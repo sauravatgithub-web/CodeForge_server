@@ -10,7 +10,7 @@ import Batch from '../models/batchModel.js'
 
 dotenv.config();
 const emailTokens = {};
-let myUser;
+let userRole;
 const multerStorage = multer.memoryStorage();
 
 const multerFilter = (req, file, cb) => {
@@ -155,7 +155,7 @@ const login = tryCatch(async(req, res, next) => {
   const isMatch = bcrypt.compare(password, user.password);
   if(!isMatch) return next(new ErrorHandler("Invalid credentials", 404));
 
-  myUser = user;
+  userRole = user.role;
   sendToken(res, user, 200, `Welcome back, ${user.name}`);
   return user;
 })
@@ -187,9 +187,10 @@ const setNewPassword = tryCatch(async(req, res, next) => {
 })
 
 const getMyProfile = tryCatch(async(req, res) => {
-  const user = myUser;
-
-  res.status(200).json({
+  let user;
+  if(userRole === "student") user = await User.findById(req.user); 
+  else user = await Teacher.findById(req.user); 
+  return res.status(200).json({
       success: true,
       user
   })

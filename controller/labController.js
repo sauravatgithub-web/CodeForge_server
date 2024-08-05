@@ -38,5 +38,14 @@ const updateLab = tryCatch(async(req, res, next) => {
     res.status(200).json({ success: true, lab: lab });
 })
 
+const startLab = tryCatch(async (req, res, next) => {
+    const { labId } = req.params;
+    const lab = await Lab.findById(labId);
+    if(!lab) return next(new ErrorHandler("Incorrect labId",404));
+    
+    await lab.startLab();
+    res.status(200).json({success: true, message : 'Lab started successfully'});
+})
 
-export { getAllLabs, getThisLab, createLab, updateLab }
+
+export { getAllLabs, getThisLab, createLab, updateLab, startLab}

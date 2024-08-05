@@ -40,10 +40,9 @@ const teacherSchema = new mongoose.Schema({
         required: [true, "Please enter a secret answer"],
         required: true,
     },
-    batch: 
-        {
-            type: String,
-        }
+    batch: [{
+        type: String,
+    }]
 });
 
 // using middleware will help in not saving the confirm password

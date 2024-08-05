@@ -6,7 +6,7 @@ import dotenv from 'dotenv'
 import { cookieOption, sendToken } from '../utils/features.js';
 import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler, sendEmail } from '../utils/utility.js';
-import Batch from '../models/batch.js'
+import Batch from '../models/batchModel.js'
 
 dotenv.config();
 const emailTokens = {};
@@ -205,4 +205,48 @@ const logOut = tryCatch(async(req, res) => {
       });
 });
 
-export { newUser, login, forgetPassword, setNewPassword, getMyProfile, logOut, emailVerification, confirmOTP,uploadUserPhoto, resizeUserPhoto }
+const updateMyBatch = tryCatch(async(req, res) => {
+  const { userId, batches } = req.body;
+  if(!userId || !batches) return next(new ErrorHandler("Not all fields satisfied", 404));
+
+  const teacher = await Teacher.findById(userId);
+  if(!teacher) return next(new ErrorHandler("Teacher not found", 404));
+  const oldBatches = teacher.batch;
+  let newBatches = [], removedBatches = [];
+  
+  for(const batch of batches) {
+    if(!oldBatches.includes(batch)) newBatches.push(batch);
+  }
+  for(const batch of oldBatches) {
+    if(!batches.includes(batch)) removedBatches.push(batch);
+  }
+
+  teacher.batch = batches;
+  await teacher.save();
+  for(const batch of newBatches) {
+    const batchToModify = await Batch.findOne({name : batch});
+    batchToModify.teacher = teacher._id;
+    await batchToModify.save();
+  }
+  for(const batch of removedBatches) {
+    const batchToModify = await Batch.findOne({name : batch});
+    batchToModify.teacher = null;
+    await batchToModify.save();
+  }
+
+  return res.status(200).json({ success : true });
+})
+
+export { 
+  newUser, 
+  login, 
+  forgetPassword, 
+  setNewPassword, 
+  getMyProfile, 
+  logOut, 
+  emailVerification, 
+  confirmOTP,
+  uploadUserPhoto, 
+  resizeUserPhoto,
+  updateMyBatch
+}

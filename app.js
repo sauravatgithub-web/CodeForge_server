@@ -8,6 +8,7 @@ import userRoute from './routers/userRouter.js';
 import questionRoute from './routers/questionRouter.js';
 import submissionRoute from './routers/submissionRouter.js';
 import labRoute from './routers/labRouter.js';
+import batchRoute from './routers/batchRouter.js';
 import { errorMiddleware } from './middlewares/error.js';
 
 const corsOptions = {
@@ -36,6 +37,7 @@ app.use('/api/v1/user', userRoute);
 app.use('/api/v1/question', questionRoute);
 app.use('/api/v1/submission', submissionRoute);
 app.use('/api/v1/lab', labRoute);
+app.use('/api/v1/batch', batchRoute);
 
 app.get('/', (req, res) => {
     res.send("This is IIT BBS");

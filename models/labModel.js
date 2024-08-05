@@ -66,6 +66,12 @@ labSchema.methods.startLab = async function() {
     }, 1000);
 };
 
+labSchema.methods.extendLab = async function(time){
+    if(!this.isStart) throw new ErrorHandler('Lab is not started!');
+    this.duration+=time;
+    await this.size();
+};
+
 const Lab = mongoose.model('Lab', labSchema);
 
 export default Lab;

@@ -22,7 +22,7 @@ const createLab = tryCatch(async(req, res, next) => {
     }
     const lab = await Lab.create(newLab);
     return res.status(200).json({ success: true, lab: lab });
-})
+});
 
 const updateLab = tryCatch(async(req, res, next) => {
     const { labId, questionArray } = req.body;
@@ -36,7 +36,7 @@ const updateLab = tryCatch(async(req, res, next) => {
     await lab.save();
 
     res.status(200).json({ success: true, lab: lab });
-})
+});
 
 const startLab = tryCatch(async (req, res, next) => {
     const { labId } = req.params;
@@ -45,7 +45,17 @@ const startLab = tryCatch(async (req, res, next) => {
     
     await lab.startLab();
     res.status(200).json({success: true, message : 'Lab started successfully'});
-})
+});
+
+const extendLab = tryCatch(async(req,res) => {
+    const { labId } = req.params;
+    const lab = await Lab.findById(labId);
+    if(!lab) return next(new ErrorHandler("Incorrect labId",404));
+    const { extendTime } = time;
+    
+    await lab.extendLab(time);
+    res.status(200).json({success: true, message : 'Lab extended successfully'});
+});
 
 
-export { getAllLabs, getThisLab, createLab, updateLab, startLab}
+export { getAllLabs, getThisLab, createLab, updateLab, startLab, extendLab}

@@ -51,9 +51,10 @@ const extendLab = tryCatch(async(req,res) => {
     const { labId } = req.params;
     const lab = await Lab.findById(labId);
     if(!lab) return next(new ErrorHandler("Incorrect labId",404));
-    const { extendTime } = time;
+    console.log(req.body.extendTime , labId);
+    const extendTime  = req.body.extendTime;
     
-    await lab.extendLab(time);
+    await lab.extendLab(extendTime);
     res.status(200).json({success: true, message : 'Lab extended successfully'});
 });
 

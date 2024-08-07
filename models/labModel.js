@@ -52,7 +52,7 @@ labSchema.methods.startLab = async function() {
     await this.save();
 
     // Start the countdown
-    const interval = setInterval(async () => {
+    const interval = async () => {
         if (this.duration > 0) {
             this.duration -= 1;
             await this.save();
@@ -63,13 +63,17 @@ labSchema.methods.startLab = async function() {
             clearInterval(interval);
             // console.log(Lab ${this._id} has ended.);
         }
-    }, 1000);
+    };
+    
+
+
+    setInterval(interval,1000);
 };
 
-labSchema.methods.extendLab = async function(time){
+labSchema.methods.extendLab = async function(extendTime){
     if(!this.isStart) throw new ErrorHandler('Lab is not started!');
-    this.duration+=time;
-    await this.size();
+    this.duration+=extendTime;
+    await this.save();
 };
 
 const Lab = mongoose.model('Lab', labSchema);

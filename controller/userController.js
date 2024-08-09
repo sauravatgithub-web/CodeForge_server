@@ -129,8 +129,6 @@ const newUser = tryCatch(async (req, res, next) => {
       });
     }
 
-    console.log(user); // Log the created user
-
     // Send token and welcome message
     sendToken(res, user, 200, `Welcome to Code Forge`);
 

@@ -1,4 +1,5 @@
 import mongoose, { Types } from 'mongoose';
+import {sendReport} from '../controller/reportController.js';
 
 const labSchema = new mongoose.Schema({
     topic: {
@@ -13,6 +14,11 @@ const labSchema = new mongoose.Schema({
         {
             type: Types.ObjectId,
             ref: "Question",
+        }
+    ],
+    report: [
+        {
+            type: Object
         }
     ],
     duration: {
@@ -51,13 +57,11 @@ labSchema.methods.startLab = async function() {
             this.isStart = false;
             await this.save();
             clearInterval(interval);
-            // console.log(Lab ${this._id} has ended.);
         }
     };
-    
-
 
     setInterval(interval,1000);
+    await sendReport(this.ObjectId);
 };
 
 labSchema.methods.extendLab = async function(extendTime){

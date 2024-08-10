@@ -5,7 +5,7 @@ import Report from '../models/reportModal.js';
 import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler } from '../utils/utility.js';
 
-export const createData = async (labId, userId, questionId, count, script) => {
+const createData = async (labId, userId, questionId, count, script) => {
     const reportName = labId + userId;
     let report = await Report.findOne({ name: reportName });
 
@@ -37,3 +37,30 @@ export const createData = async (labId, userId, questionId, count, script) => {
         await newReport.save(); 
     }
 };
+
+const sendReport = tryCatch(async(labId,next)=>{
+    const lab = await Lab.findById({ labId });
+    if(!lab) return next(new ErrorHandler("Invalid id", 404));
+
+    const reports = await Report.find({ name: { $regex: `^${labId}` } });
+    if(!reports) return next(new ErrorHandler("Invalid id", 404));
+
+    const response = reports.map(report => {
+        let formattedReport = {
+            rollNumber: report.rollNumber,
+            name: report.studentName,
+        };
+
+        report.questions.forEach((question, index) => {
+            formattedReport[`question${index + 1}`] = question.count;
+            formattedReport[`code${index + 1}`] = question.script;
+        });
+        
+        return formattedReport;
+    });
+
+    lab.report = response;
+    await lab.save();
+});
+
+export { createData, sendReport }

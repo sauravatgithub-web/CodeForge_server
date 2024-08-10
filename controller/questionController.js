@@ -172,11 +172,17 @@ const submitCode = tryCatch(async(req, res, next) => {
         return res.status(200).json({ success: true, message: "All testcases passed successfully" });
     }
     else {
-        const output = {
-            userOutput: data.output,
-            actualOutput: stdout
+        const stdoutArray = stdout.split('\n');
+        const outputArray = data.output.split('\n');
+        stdoutArray.pop();
+        outputArray.pop();
+        
+        let size = stdoutArray.length;
+        let count = 0;
+        for(let i = 0; i < size; i++) {
+            if(stdoutArray[i] == outputArray[i]) count++;
         }
-        return res.status(200).json({ sucess: false, output })
+        return res.status(200).json({ sucess: false, message: `${count}/${size} testcases passed successfully` });
     }
 })
 

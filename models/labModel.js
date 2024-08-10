@@ -15,16 +15,6 @@ const labSchema = new mongoose.Schema({
             ref: "Question",
         }
     ],
-    successfulSubmissions: [
-        {
-            submissionIds : [
-                {
-                    type: Types.ObjectId,
-                    ref: "User",
-                }
-            ]
-        }
-    ],
     duration: {
         type : Number,
         required: [true,"Please enter the duration"]

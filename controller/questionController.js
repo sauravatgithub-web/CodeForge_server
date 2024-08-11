@@ -145,6 +145,9 @@ const submitCode = tryCatch(async(req, res, next) => {
   
     const data = response.data;
     data.output = data.output + "\n";
+
+    console.log(data.output);
+    console.log(stdout);
   
     if(data.output === stdout) {
         if(data.cpuTime >= question.time) {

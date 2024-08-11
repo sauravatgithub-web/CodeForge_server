@@ -1,5 +1,4 @@
 import User from '../models/userModel.js';
-import Question from '../models/questionModel.js';
 import Lab from '../models/labModel.js';
 import Report from '../models/reportModal.js';
 import { tryCatch } from '../middlewares/error.js';
@@ -38,29 +37,4 @@ const createData = async (labId, userId, questionId, count, script) => {
     }
 };
 
-const sendReport = tryCatch(async(labId,next)=>{
-    const lab = await Lab.findById({ labId });
-    if(!lab) return next(new ErrorHandler("Invalid id", 404));
-
-    const reports = await Report.find({ name: { $regex: `^${labId}` } });
-    if(!reports) return next(new ErrorHandler("Invalid id", 404));
-
-    const response = reports.map(report => {
-        let formattedReport = {
-            rollNumber: report.rollNumber,
-            name: report.studentName,
-        };
-
-        report.questions.forEach((question, index) => {
-            formattedReport[`question${index + 1}`] = question.count;
-            formattedReport[`code${index + 1}`] = question.script;
-        });
-        
-        return formattedReport;
-    });
-
-    lab.report = response;
-    await lab.save();
-});
-
-export { createData, sendReport }
+export { createData }

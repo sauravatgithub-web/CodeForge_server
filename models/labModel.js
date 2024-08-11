@@ -1,5 +1,4 @@
 import mongoose, { Types } from 'mongoose';
-import {sendReport} from '../controller/reportController.js';
 
 const labSchema = new mongoose.Schema({
     topic: {
@@ -12,8 +11,12 @@ const labSchema = new mongoose.Schema({
     },
     questions: [
         {
-            type: Types.ObjectId,
-            ref: "Question",
+            id: {
+                type: Types.ObjectId,
+                ref: "Question", 
+            },
+            tag: { type: String},
+            numTestCase : { type: Number }
         }
     ],
     report: [
@@ -61,7 +64,6 @@ labSchema.methods.startLab = async function() {
     };
 
     setInterval(interval,1000);
-    await sendReport(this.ObjectId);
 };
 
 labSchema.methods.extendLab = async function(extendTime){

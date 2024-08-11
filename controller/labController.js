@@ -1,6 +1,7 @@
 import User from '../models/userModel.js';
 import Question from '../models/questionModel.js';
 import Lab from '../models/labModel.js';
+import Report from '../models/reportModal.js';
 import { createSubmission } from '../controller/submissionController.js'
 import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler } from '../utils/utility.js';
@@ -40,7 +41,6 @@ const updateLab = tryCatch(async(req, res, next) => {
     if(!lab) return next(new ErrorHandler("Incorrect labId", 404));
 
     lab.questions = questionArray;
-    console.log(lab);
     await lab.save();
 
     res.status(200).json({ success: true, lab: lab });
@@ -154,5 +154,41 @@ const labQuestionSubmission = tryCatch(async(req, res, next) => {
     return res.status(200).json({ success, message });
 })  
 
+const createReport = tryCatch(async( req, res, next ) => {
+    const labId = req.params.id;
+    const lab = await Lab.findById(labId);
+    if(!lab) return next(new ErrorHandler("Invalid id", 404));
 
-export { getAllLabs, getThisLab, createLab, updateLab, startLab, extendLab, labQuestionSubmission }
+    const reports = await Report.find({ name: { $regex : "^" + labId } });
+    if(!reports) return next(new ErrorHandler("Invalid id", 404));
+
+    const response = reports.map(report => {
+        let formattedReport = {
+            rollNumber: report.rollNumber,
+            name: report.studentName,
+        };
+
+        report.questions.forEach((question, index) => {
+            formattedReport[`question${index + 1}`] = question.count;
+            formattedReport[`code${index + 1}`] = question.script;
+        });
+        
+        return formattedReport;
+    });
+
+    lab.report = response;
+    await lab.save();
+    res.status(200).json({ success: true, message: "Lab Report created successfully." });
+});
+
+
+export { 
+    getAllLabs, 
+    getThisLab, 
+    createLab, 
+    updateLab, 
+    startLab, 
+    extendLab, 
+    labQuestionSubmission,
+    createReport
+}

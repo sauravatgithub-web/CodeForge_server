@@ -20,6 +20,9 @@ const batchSchema = new mongoose.Schema({
             ref: "Lab",
         }
     ],
+    report: [
+        { type: Object }
+    ]
 });
 
 const Batch = mongoose.model('Batch', batchSchema);

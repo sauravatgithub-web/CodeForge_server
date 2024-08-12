@@ -6,8 +6,7 @@ import {
     updateLab,
     startLab,
     extendLab,
-    labQuestionSubmission,
-    createReport,
+    labQuestionSubmission
 } from '../controller/labController.js'
 
 const router = express.Router();
@@ -19,6 +18,5 @@ router.post('/updateLab', updateLab);
 router.post('/startLab/:labId',startLab);
 router.post('/extendLab/:labId',extendLab);
 router.post('/submitCode/:id', labQuestionSubmission);
-router.post('/createReport/:id', createReport);
 
 export default router;

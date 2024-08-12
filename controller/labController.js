@@ -7,7 +7,7 @@ import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler } from '../utils/utility.js';
 import axios from 'axios';
 import dotenv from 'dotenv';
-import { createData } from './reportController.js'
+import Batch from '../models/batchModel.js';
 
 dotenv.config();
 
@@ -20,31 +20,68 @@ const getThisLab = tryCatch(async(req, res, next) => {
     const batch = req.params.batch;
     const lab = await Lab.find({batch});
     if(!lab) return next(new ErrorHandler("Incorrect batch", 404));
-    return res.status(200).json({ success: true, lab:lab });
-});
-
-const createLab = tryCatch(async(req, res, next) => {
-    const { topic, batch, duration, date } = req.body;
-    if(!topic || !batch || !duration) return next(new ErrorHandler("Insufficient fileds", 404));
-    const newLab = {
-        topic, batch, duration, date
-    }
-    const lab = await Lab.create(newLab);
     return res.status(200).json({ success: true, lab: lab });
 });
 
-const updateLab = tryCatch(async(req, res, next) => {
-    const { labId, questionArray } = req.body;
-    if(!labId || !questionArray) return next(new ErrorHandler("Insufficient fields", 404));
+const createLab = tryCatch(async (req, res, next) => {
+    const { topic, batch, duration, date } = req.body;
+    if (!topic || !batch || !duration) return next(new ErrorHandler("Insufficient fields", 404));
 
+    const batchInfo = await Batch.findOne({ name: batch });
+    if (!batchInfo || batchInfo.students.length === 0) {
+      return next(new ErrorHandler("Batch not found or has no students", 404));
+    }
+
+    const reportPromises = batchInfo.students.map(async (id) => {
+      const user = await User.findById(id);
+      return {
+        rollNumber: user.rollNumber,
+        name: user.name,
+        score: 0
+      };
+    });
+    const report = await Promise.all(reportPromises);
+  
+    const newLab = {
+      topic,
+      batch,
+      duration,
+      date,
+      report
+    };
+  
+    const lab = await Lab.create(newLab);
+
+    batchInfo.labs.push(lab._id);
+    let numLabs = batchInfo.labs.length;
+    for(let student of batchInfo.report) {
+        student[`lab${numLabs}`] = 0;
+    }
+
+    await batchInfo.save();
+    return res.status(200).json({ success: true, lab });
+});  
+
+const updateLab = tryCatch(async (req, res, next) => {
+    const { labId, questionArray } = req.body;
+    if (!labId || !questionArray) return next(new ErrorHandler("Insufficient fields", 404));
+  
     const lab = await Lab.findById(labId);
-    if(!lab) return next(new ErrorHandler("Incorrect labId", 404));
+    if (!lab) return next(new ErrorHandler("Incorrect labId", 404));
 
     lab.questions = questionArray;
-    await lab.save();
+    const qlength = questionArray.length;
 
-    res.status(200).json({ success: true, lab: lab });
-});
+    for (let i = 0; i < lab.report.length; i++) {
+      for (let j = 1; j <= qlength; j++) {
+        lab.report[i][`question${j}`] = 0;
+        lab.report[i][`code${j}`] = "";
+      }
+    }
+    
+    await lab.save();
+    res.status(200).json({ success: true, lab });
+});  
 
 const startLab = tryCatch(async (req, res, next) => {
     const { labId } = req.params;
@@ -149,37 +186,48 @@ const labQuestionSubmission = tryCatch(async(req, res, next) => {
         message = `${count}/${size} testcases passed successfully`;
     }
 
-    await createData(labId, userId, questionId, count, script);
+    await createData(lab, user.rollNumber, questionId, count, script);
 
     return res.status(200).json({ success, message });
 })  
 
-const createReport = tryCatch(async( req, res, next ) => {
-    const labId = req.params.id;
-    const lab = await Lab.findById(labId);
-    if(!lab) return next(new ErrorHandler("Invalid id", 404));
+const createData = async (lab, rollNumber, questionId, count, script) => {
+    const report = lab.report;
+    const studentReport = report.find((student) => student.rollNumber === rollNumber);
+    const index = lab.questions.indexOf(questionId);
 
-    const reports = await Report.find({ name: { $regex : "^" + labId } });
-    if(!reports) return next(new ErrorHandler("Invalid id", 404));
+    studentReport[`question${index+1}`] = count;
+    studentReport[`code${index+1}`] = script;
 
-    const response = reports.map(report => {
-        let formattedReport = {
-            rollNumber: report.rollNumber,
-            name: report.studentName,
-        };
-
-        report.questions.forEach((question, index) => {
-            formattedReport[`question${index + 1}`] = question.count;
-            formattedReport[`code${index + 1}`] = question.script;
-        });
-        
-        return formattedReport;
-    });
-
-    lab.report = response;
     await lab.save();
-    res.status(200).json({ success: true, message: "Lab Report created successfully." });
-});
+};
+
+// const createReport = tryCatch(async( req, res, next ) => {
+//     const labId = req.params.id;
+//     const lab = await Lab.findById(labId);
+//     if(!lab) return next(new ErrorHandler("Invalid id", 404));
+
+//     const reports = await Report.find({ name: { $regex : "^" + labId } });
+//     if(!reports) return next(new ErrorHandler("Invalid id", 404));
+
+//     const response = reports.map(report => {
+//         let formattedReport = {
+//             rollNumber: report.rollNumber,
+//             name: report.studentName,
+//         };
+
+//         report.questions.forEach((question, index) => {
+//             formattedReport[`question${index + 1}`] = question.count;
+//             formattedReport[`code${index + 1}`] = question.script;
+//         });
+        
+//         return formattedReport;
+//     });
+
+//     lab.report = response;
+//     await lab.save();
+//     res.status(200).json({ success: true, message: "Lab Report created successfully." });
+// });
 
 
 export { 
@@ -190,5 +238,5 @@ export {
     startLab, 
     extendLab, 
     labQuestionSubmission,
-    createReport
+    // createReport
 }

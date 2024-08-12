@@ -46,6 +46,10 @@ const questionSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please provide the expected space complexity!']
   },
+  labId: {
+    type: Types.ObjectId,
+    ref: "Lab"
+  }
 });
 
 const Question = mongoose.model('Question', questionSchema);

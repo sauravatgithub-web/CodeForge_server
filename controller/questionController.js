@@ -1,5 +1,6 @@
 import User from '../models/userModel.js';
 import Question from '../models/questionModel.js';
+import Lab from '../models/labModel.js';
 import Teacher from '../models/teacherModel.js';
 import { createSubmission } from '../controller/submissionController.js'
 import { tryCatch } from '../middlewares/error.js';
@@ -66,22 +67,28 @@ const updateQuestion = tryCatch(async(req, res, next)=>{
     const {title, description, tags, testCase, answer, hints, constraints, time, space, questionId} = req.body;
     if(!title || !description || !tags || !testCase || !answer || !hints || !constraints || !time || !space || !questionId) 
         return next(new ErrorHandler("Insufficient input",404));
-    
-    console.log(1);
+
     const question = await Question.findById(questionId);
     if(!question) return next(new ErrorHandler("Incorrect question id", 404));
 
-    console.log(2);
     const reqData = {
         title, description, tags, testCase, answer, hints, constraints, time, space
     }
 
-    console.log(3);
     Object.keys(reqData).forEach(key => {
         question[key] = reqData[key];
     });
-    await question.save();
 
+    const lab = await Lab.findById(question.labId);
+    for(let q of lab.questions) {
+        if(q.id == questionId) {
+            q.tag = tags[0];
+            break;
+        }
+    }
+    await lab.save();
+
+    await question.save();
     return res.status(200).json({ sucess: true, data: question });
 })
 

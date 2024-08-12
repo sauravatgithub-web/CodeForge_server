@@ -117,22 +117,59 @@ const newUser = tryCatch(async (req, res, next) => {
       });
 
       let batch = await Batch.findOne({ name: batchName });
-      if(!batch) {
+      if (!batch) {
         batch = await Batch.create({ name: batchName });
+        batch.students.push(user._id);
+        batch.report = [{
+          rollNumber: user.rollNumber,
+          name: user.name,
+          totalScore: 0
+        }];
+      } 
+      else {
+        const studentList = batch.students;
+        const report = batch.report;
+        let added = false;
+      
+        for (let i = 0; i < studentList.length; i++) {
+          const student = await User.findById(studentList[i]);
+      
+          if (student.rollNumber > rollNumber) {
+            studentList.splice(i, 0, user._id);
+            report.splice(i, 0, {
+              rollNumber: user.rollNumber,
+              name: user.name,
+              totalScore: 0
+            });
+            added = true;
+            break;
+          }
+        }
+      
+        if (!added) {
+          studentList.push(user._id);
+          report.push({
+            rollNumber: user.rollNumber,
+            name: user.name,
+            totalScore: 0
+          });
+        }
       }
-      batch.students.push(user._id);
       await batch.save();
+
+      // added in labs
     } 
     else {
+      console.log(200);
       user = await Teacher.create({ 
-        name, email, password, secretQuestion, secretAnswer 
+        name, email, password, secretQuestion, secretAnswer, role: "teacher" 
       });
+      console.log(user);
     }
 
-    // Send token and welcome message
     sendToken(res, user, 200, `Welcome to Code Forge`);
-
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Error creating user:', error);
     return next(new ErrorHandler("An error occurred while creating the user", 500));
   }

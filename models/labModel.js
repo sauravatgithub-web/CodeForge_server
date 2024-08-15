@@ -9,6 +9,9 @@ const labSchema = new mongoose.Schema({
         type: String,
         required: [true, "Please enter a batch"]
     },
+    date:{
+        type : String
+    },
     questions: [
         {
             id: {

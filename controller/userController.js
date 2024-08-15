@@ -47,7 +47,7 @@ const sendOTP = async(email, message, next) => {
   const otp = (Math.floor(100000 + Math.random() * 900000)).toString();
   const expirationTime = new Date(Date.now() + (2 * 60 * 60 * 1000));
   const sharedToken = `${otp}`;
-
+  console.log(otp);
   try {
       await sendEmail(email, message, sharedToken);
       emailTokens[email] = {otp, expirationTime};
@@ -118,14 +118,23 @@ async function createStudent(name, email, password, secretQuestion, secretAnswer
     }];
   } 
   else {
+    // console.log(batch);
+    // console.log(batch.report);
+    batch = await Batch.findOne({ name: batchName }).populate('students', '_id');
     const studentList = batch.students;
+    console.log(studentList);
+    console.log(studentList.length);
+
     const report = batch.report;
     let added = false;
     let index = -1;
 
     for (let i = 0; i < studentList.length; i++) {
+      // console.log(studentList[i]);
       const student = await User.findById(studentList[i]);
-
+      // console.log(student);
+      // console.log(rollNumber);
+      // console.log(student.rollNumber);
       if (student.rollNumber > rollNumber) {
         studentList.splice(i, 0, user._id);
         report.splice(i, 0, {
@@ -140,17 +149,22 @@ async function createStudent(name, email, password, secretQuestion, secretAnswer
     }
 
     if (!added) {
+      console.log(studentList.length);
       studentList.push(user._id);
+      console.log(studentList.length);
       report.push({
         rollNumber: user.rollNumber,
         name: user.name,
         totalScore: 0
       });
-      index = studentList.length - 1;
+      // index = studentList.length -1;
     }
 
     for (const labId of batch.labs) {
+      let added = false;
+      console.log(labId);
       const lab = await Lab.findById(labId);
+      console.log(lab);
       const numQuestions = lab.questions.length;
     
       // Create a base report entry
@@ -167,8 +181,23 @@ async function createStudent(name, email, password, secretQuestion, secretAnswer
       }
     
       // Insert the report entry into the report array
-      lab.report.splice(index, 0, reportEntry);
-    
+      // if(index!=-1) {
+      //   lab.report.splice(index+1, 0, reportEntry);
+      // }
+      // else {
+      //   lab.push(reportEntry);
+      // }
+      for(let i=0;i<lab.report.length;i++){
+        if (lab.report[i].rollNumber > rollNumber) {
+          lab.report.splice(i, 0, reportEntry);
+          added = true;
+          break;
+        }
+      }
+      
+      if(!added){
+        lab.report.push(reportEntry);
+      }
       await lab.save();
     }
     

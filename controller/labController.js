@@ -34,6 +34,8 @@ const createLab = tryCatch(async (req, res, next) => {
 
     const reportPromises = batchInfo.students.map(async (id) => {
       const user = await User.findById(id);
+      console.log(id);
+      console.log(user);
       return {
         rollNumber: user.rollNumber,
         name: user.name,
@@ -105,21 +107,32 @@ const updateLabScore = tryCatch(async(req, res, next) => {
     const lab = await Lab.findById(labId);
     if(!lab) return next(new ErrorHandler("Incorrect lab id..", 404));
 
+    // console.log(scores);
+
     lab.report.forEach((reportItem, index) => {
         reportItem.score = scores[index];
     });
-    console.log(lab.report);
+    // console.log(lab.report);
+
+    lab.markModified('report');
     await lab.save();
 
     const batch = await Batch.findOne({ name: lab.batch });
     if(!batch) return next(new ErrorHandler("Not linked to any batch", 404));
 
     const index = batch.labs.indexOf(labId);
+    console.log(index);
     for(let i = 0; i < lab.report.length; i++) {
-        const prevScore = batch.report[i][`lab${index}`];
-        batch.report[i][`lab${index}`] = lab.report[i].score;
-        batch.report[i].totalScore += (batch.report[i][`lab${index}`] - prevScore);
+        const prevScore = batch.report[i][`lab${index+1}`];
+        batch.report[i][`lab${index+1}`] = lab.report[i].score;
+
+        batch.report[i].totalScore += (batch.report[i][`lab${index+1}`] - prevScore);
+
+        console.log(prevScore , batch.report[i][`lab${index+1}`],batch.report[i].totalScore);
+        // batch.report[i].totalScore = 0 ;
     }
+    
+    batch.markModified('report');
     await batch.save();
 
     return res.status(200).json({ success: true, message: "All updates done successfully." });
@@ -236,11 +249,26 @@ const labQuestionSubmission = tryCatch(async(req, res, next) => {
 const createData = async (lab, rollNumber, questionId, count, script) => {
     const report = lab.report;
     const studentReport = report.find((student) => student.rollNumber === rollNumber);
-    const index = lab.questions.indexOf(questionId);
+    let index = -1;
 
+    for(let i = 0; i < lab.questions.length; i++) {
+        if(lab.questions[i].id == questionId) {
+            index = i;
+            break;
+        }
+    }
     studentReport[`question${index+1}`] = count;
     studentReport[`code${index+1}`] = script;
 
+    let finalScore =0;
+    for(let i=0;i<lab.questions.length;i++){
+        finalScore  = finalScore + studentReport[`question${i+1}`];
+    }
+    console.log(finalScore);
+    // studentReport.score -= studentReport[`question${index+1}`];
+    studentReport.score = finalScore ;
+
+    lab.markModified('report');
     await lab.save();
 };
 

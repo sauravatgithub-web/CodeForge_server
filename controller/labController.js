@@ -30,7 +30,7 @@ const createLab = tryCatch(async (req, res, next) => {
     const batchInfo = await Batch.findOne({ name: batch });
     if (!batchInfo || batchInfo.students.length === 0) {
       return next(new ErrorHandler("Batch not found or has no students", 404));
-    }
+    }   
 
     const reportPromises = batchInfo.students.map(async (id) => {
       const user = await User.findById(id);
@@ -54,34 +54,76 @@ const createLab = tryCatch(async (req, res, next) => {
 
     batchInfo.labs.push(lab._id);
     let numLabs = batchInfo.labs.length;
-    for(let student of batchInfo.report) {
-        student[`lab${numLabs}`] = 0;
-    }
 
+    batchInfo.report = batchInfo.report.map(student => {
+        student[`lab${numLabs}`] = 0;
+        return student;
+    });
+
+    batchInfo.markModified('report');
     await batchInfo.save();
+
     return res.status(200).json({ success: true, lab });
-});  
+});
+ 
 
 const updateLab = tryCatch(async (req, res, next) => {
     const { labId, questionArray } = req.body;
     if (!labId || !questionArray) return next(new ErrorHandler("Insufficient fields", 404));
-  
+
     const lab = await Lab.findById(labId);
     if (!lab) return next(new ErrorHandler("Incorrect labId", 404));
 
     lab.questions = questionArray;
     const qlength = questionArray.length;
 
-    for (let i = 0; i < lab.report.length; i++) {
-      for (let j = 1; j <= qlength; j++) {
-        lab.report[i][`question${j}`] = 0;
-        lab.report[i][`code${j}`] = "";
-      }
+    const bulkOps = lab.report.map((report, index) => {
+        const updateFields = {};
+        for (let j = 1; j <= qlength; j++) {
+            updateFields[`report.$[elem].question${j}`] = 0;
+            updateFields[`report.$[elem].code${j}`] = "";
+        }
+        return {
+            updateOne: {
+                filter: { _id: labId, 'report._id': report._id },
+                update: { $set: updateFields },
+                arrayFilters: [{ 'elem._id': report._id }]
+            }
+        };
+    });
+
+    if (bulkOps.length > 0) {
+        await Lab.bulkWrite(bulkOps);
     }
-    
+
     await lab.save();
     res.status(200).json({ success: true, lab });
-});  
+});
+
+const updateLabScore = tryCatch(async(req, res, next) => {
+    const { labId, scores } = req.body;
+    const lab = await Lab.findById(labId);
+    if(!lab) return next(new ErrorHandler("Incorrect lab id..", 404));
+
+    lab.report.forEach((reportItem, index) => {
+        reportItem.score = scores[index];
+    });
+    console.log(lab.report);
+    await lab.save();
+
+    const batch = await Batch.findOne({ name: lab.batch });
+    if(!batch) return next(new ErrorHandler("Not linked to any batch", 404));
+
+    const index = batch.labs.indexOf(labId);
+    for(let i = 0; i < lab.report.length; i++) {
+        const prevScore = batch.report[i][`lab${index}`];
+        batch.report[i][`lab${index}`] = lab.report[i].score;
+        batch.report[i].totalScore += (batch.report[i][`lab${index}`] - prevScore);
+    }
+    await batch.save();
+
+    return res.status(200).json({ success: true, message: "All updates done successfully." });
+});
 
 const startLab = tryCatch(async (req, res, next) => {
     const { labId } = req.params;
@@ -202,41 +244,13 @@ const createData = async (lab, rollNumber, questionId, count, script) => {
     await lab.save();
 };
 
-// const createReport = tryCatch(async( req, res, next ) => {
-//     const labId = req.params.id;
-//     const lab = await Lab.findById(labId);
-//     if(!lab) return next(new ErrorHandler("Invalid id", 404));
-
-//     const reports = await Report.find({ name: { $regex : "^" + labId } });
-//     if(!reports) return next(new ErrorHandler("Invalid id", 404));
-
-//     const response = reports.map(report => {
-//         let formattedReport = {
-//             rollNumber: report.rollNumber,
-//             name: report.studentName,
-//         };
-
-//         report.questions.forEach((question, index) => {
-//             formattedReport[`question${index + 1}`] = question.count;
-//             formattedReport[`code${index + 1}`] = question.script;
-//         });
-        
-//         return formattedReport;
-//     });
-
-//     lab.report = response;
-//     await lab.save();
-//     res.status(200).json({ success: true, message: "Lab Report created successfully." });
-// });
-
-
 export { 
     getAllLabs, 
     getThisLab, 
     createLab, 
     updateLab, 
+    updateLabScore,
     startLab, 
     extendLab, 
     labQuestionSubmission,
-    // createReport
 }

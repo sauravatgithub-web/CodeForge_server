@@ -2,6 +2,7 @@ import bcrypt, { hash } from 'bcrypt'
 import multer from 'multer'
 import User from '../models/userModel.js'
 import Teacher from '../models/teacherModel.js'
+import Lab from '../models/labModel.js'
 import dotenv from 'dotenv'
 import { cookieOption, sendToken } from '../utils/features.js';
 import { tryCatch } from '../middlewares/error.js';
@@ -96,6 +97,73 @@ const confirmOTP = tryCatch(async(req, res, next) => {
   else return res.status(400).json({ success: false, message: "OTP expired." });
 })
 
+async function createStudent(name, email, password, secretQuestion, secretAnswer) {
+  const index = email.indexOf('@');
+  const rollNumber = email.slice(0, index);
+  const year = email.slice(0, 2);
+  const batchName = year + "BTECH";
+
+  const user = await User.create({
+    name, email, password, rollNumber, secretQuestion, secretAnswer, batch: batchName
+  });
+
+  let batch = await Batch.findOne({ name: batchName });
+  if (!batch) {
+    batch = await Batch.create({ name: batchName });
+    batch.students.push(user._id);
+    batch.report = [{
+      rollNumber: user.rollNumber,
+      name: user.name,
+      totalScore: 0
+    }];
+  } 
+  else {
+    const studentList = batch.students;
+    const report = batch.report;
+    let added = false;
+    let index = -1;
+
+    for (let i = 0; i < studentList.length; i++) {
+      const student = await User.findById(studentList[i]);
+
+      if (student.rollNumber > rollNumber) {
+        studentList.splice(i, 0, user._id);
+        report.splice(i, 0, {
+          rollNumber: user.rollNumber,
+          name: user.name,
+          totalScore: 0
+        });
+        added = true;
+        index = i;
+        break;
+      }
+    }
+
+    if (!added) {
+      studentList.push(user._id);
+      report.push({
+        rollNumber: user.rollNumber,
+        name: user.name,
+        totalScore: 0
+      });
+      index = studentList.length - 1;
+    }
+
+    for (const labId of batch.labs) {
+      const lab = await Lab.findById(labId);
+      lab.report.splice(index, 0, {
+        rollNumber: user.rollNumber,
+        name: user.name,
+        score: 0
+      });
+      await lab.save();
+    }
+  }
+  await batch.save();
+  return user;
+}
+
+
 const newUser = tryCatch(async (req, res, next) => {
   const { name, email, password, secretQuestion, secretAnswer } = req.body;
 
@@ -103,68 +171,15 @@ const newUser = tryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Please fill all fields", 404));
   }
 
-  let user;
-
   try {
+    let user;
     if (email[0] === '2') {
-      const index = email.indexOf('@');
-      const rollNumber = email.slice(0, index);
-      const year = email.slice(0, 2);
-      const batchName = year + "BTECH";
-
-      user = await User.create({
-        name, email, password, rollNumber, secretQuestion, secretAnswer, batch : batchName
-      });
-
-      let batch = await Batch.findOne({ name: batchName });
-      if (!batch) {
-        batch = await Batch.create({ name: batchName });
-        batch.students.push(user._id);
-        batch.report = [{
-          rollNumber: user.rollNumber,
-          name: user.name,
-          totalScore: 0
-        }];
-      } 
-      else {
-        const studentList = batch.students;
-        const report = batch.report;
-        let added = false;
-      
-        for (let i = 0; i < studentList.length; i++) {
-          const student = await User.findById(studentList[i]);
-      
-          if (student.rollNumber > rollNumber) {
-            studentList.splice(i, 0, user._id);
-            report.splice(i, 0, {
-              rollNumber: user.rollNumber,
-              name: user.name,
-              totalScore: 0
-            });
-            added = true;
-            break;
-          }
-        }
-      
-        if (!added) {
-          studentList.push(user._id);
-          report.push({
-            rollNumber: user.rollNumber,
-            name: user.name,
-            totalScore: 0
-          });
-        }
-      }
-      await batch.save();
-
-      // added in labs
+      user = await createStudent(name, email, password, secretQuestion, secretAnswer);
     } 
     else {
-      console.log(200);
-      user = await Teacher.create({ 
-        name, email, password, secretQuestion, secretAnswer, role: "teacher" 
+      user = await Teacher.create({
+        name, email, password, secretQuestion, secretAnswer, role: "teacher"
       });
-      console.log(user);
     }
 
     sendToken(res, user, 200, `Welcome to Code Forge`);
@@ -174,6 +189,7 @@ const newUser = tryCatch(async (req, res, next) => {
     return next(new ErrorHandler("An error occurred while creating the user", 500));
   }
 });
+
 
 const login = tryCatch(async(req, res, next) => {
   const {email, password} = req.body;

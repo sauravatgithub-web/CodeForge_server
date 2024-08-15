@@ -81,7 +81,6 @@ const updateQuestion = tryCatch(async(req, res, next)=>{
     });
 
     const lab = await Lab.findById(question.labId);
-    console.log(lab);
     for(let q of lab.questions) {
         if(q.id == questionId) {
             q.tag = tags[0];

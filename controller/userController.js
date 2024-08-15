@@ -151,13 +151,27 @@ async function createStudent(name, email, password, secretQuestion, secretAnswer
 
     for (const labId of batch.labs) {
       const lab = await Lab.findById(labId);
-      lab.report.splice(index, 0, {
+      const numQuestions = lab.questions.length;
+    
+      // Create a base report entry
+      const reportEntry = {
         rollNumber: user.rollNumber,
         name: user.name,
         score: 0
-      });
+      };
+    
+      // Dynamically add code and question fields
+      for (let i = 1; i <= numQuestions; i++) {
+        reportEntry[`code${i}`] = "";       // Add code1, code2, etc.
+        reportEntry[`question${i}`] = 0;    // Add question1, question2, etc.
+      }
+    
+      // Insert the report entry into the report array
+      lab.report.splice(index, 0, reportEntry);
+    
       await lab.save();
     }
+    
   }
   await batch.save();
   return user;

@@ -38,7 +38,7 @@ const getTeacherQuestions = tryCatch(async(req, res, next) => {
 });
 
 const createQuestion = tryCatch(async(req, res, next)=>{
-    const {title, description, tags, testCase, answer, hints, constraints, time, space, teacherId} = req.body;
+    const {title, description, tags, testCase, answer, hints, constraints, time, space, teacherId, labId} = req.body;
     if(!title || !description || !tags || !testCase || !answer || !hints || !constraints || !time || !space || !teacherId) 
         return next(new ErrorHandler("Insufficient input",404));
 
@@ -54,7 +54,8 @@ const createQuestion = tryCatch(async(req, res, next)=>{
         hints,
         constraints,
         time,
-        space
+        space,
+        labId
     }
     const newQuestion = await Question.create(reqData);
     teacher.questions.push(newQuestion._id);
@@ -80,6 +81,7 @@ const updateQuestion = tryCatch(async(req, res, next)=>{
     });
 
     const lab = await Lab.findById(question.labId);
+    console.log(lab);
     for(let q of lab.questions) {
         if(q.id == questionId) {
             q.tag = tags[0];

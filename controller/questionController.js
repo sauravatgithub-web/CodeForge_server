@@ -107,7 +107,7 @@ const runCode = tryCatch(async(req, res, next) => {
         versionIndex : versionIndex,
         compileOnly : false
     }
-    // console.log(reqData);
+   
     const response = await axios.post("https://api.jdoodle.com/v1/execute", reqData, {
         headers: {
             "Content-type": "application/json",
@@ -154,8 +154,6 @@ const submitCode = tryCatch(async(req, res, next) => {
     const data = response.data;
     data.output = data.output + "\n";
 
-    console.log(data.output);
-    console.log(stdout);
   
     if(data.output === stdout) {
         if(data.cpuTime >= question.time) {

@@ -100,6 +100,7 @@ const confirmOTP = tryCatch(async(req, res, next) => {
 async function createStudent(name, email, password, secretQuestion, secretAnswer) {
   const index = email.indexOf('@');
   const rollNumber = email.slice(0, index);
+  const rollNumberCheck = rollNumber.slice(5)*1;
   const year = email.slice(0, 2);
   const batchName = year + "BTECH";
 
@@ -116,26 +117,19 @@ async function createStudent(name, email, password, secretQuestion, secretAnswer
       name: user.name,
       totalScore: 0
     }];
+    await batch.save();
   } 
   else {
-    // console.log(batch);
-    // console.log(batch.report);
-    batch = await Batch.findOne({ name: batchName }).populate('students', '_id');
+    batch = await Batch.findOne({ name: batchName }).populate('students','_id rollNumber name');
     const studentList = batch.students;
-    console.log(studentList);
-    console.log(studentList.length);
 
     const report = batch.report;
     let added = false;
-    let index = -1;
 
     for (let i = 0; i < studentList.length; i++) {
-      // console.log(studentList[i]);
-      const student = await User.findById(studentList[i]);
-      // console.log(student);
-      // console.log(rollNumber);
-      // console.log(student.rollNumber);
-      if (student.rollNumber > rollNumber) {
+      const studentRollNumberCheck = studentList[i].rollNumber.slice(5)*1;
+  
+      if (studentRollNumberCheck > rollNumberCheck) {
         studentList.splice(i, 0, user._id);
         report.splice(i, 0, {
           rollNumber: user.rollNumber,
@@ -143,28 +137,26 @@ async function createStudent(name, email, password, secretQuestion, secretAnswer
           totalScore: 0
         });
         added = true;
-        index = i;
         break;
       }
     }
 
     if (!added) {
-      console.log(studentList.length);
       studentList.push(user._id);
-      console.log(studentList.length);
       report.push({
         rollNumber: user.rollNumber,
         name: user.name,
         totalScore: 0
       });
-      // index = studentList.length -1;
     }
+
+    batch.markModified("report");
+    batch.markModified("students");
+    await batch.save();
 
     for (const labId of batch.labs) {
       let added = false;
-      console.log(labId);
       const lab = await Lab.findById(labId);
-      console.log(lab);
       const numQuestions = lab.questions.length;
     
       // Create a base report entry
@@ -181,12 +173,6 @@ async function createStudent(name, email, password, secretQuestion, secretAnswer
       }
     
       // Insert the report entry into the report array
-      // if(index!=-1) {
-      //   lab.report.splice(index+1, 0, reportEntry);
-      // }
-      // else {
-      //   lab.push(reportEntry);
-      // }
       for(let i=0;i<lab.report.length;i++){
         if (lab.report[i].rollNumber > rollNumber) {
           lab.report.splice(i, 0, reportEntry);
@@ -198,11 +184,11 @@ async function createStudent(name, email, password, secretQuestion, secretAnswer
       if(!added){
         lab.report.push(reportEntry);
       }
+      lab.markModified("report");
       await lab.save();
     }
     
   }
-  await batch.save();
   return user;
 }
 

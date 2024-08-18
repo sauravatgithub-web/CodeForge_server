@@ -34,8 +34,7 @@ const createLab = tryCatch(async (req, res, next) => {
 
     const reportPromises = batchInfo.students.map(async (id) => {
       const user = await User.findById(id);
-      console.log(id);
-      console.log(user);
+      
       return {
         rollNumber: user.rollNumber,
         name: user.name,
@@ -107,12 +106,10 @@ const updateLabScore = tryCatch(async(req, res, next) => {
     const lab = await Lab.findById(labId);
     if(!lab) return next(new ErrorHandler("Incorrect lab id..", 404));
 
-    // console.log(scores);
 
     lab.report.forEach((reportItem, index) => {
         reportItem.score = scores[index];
     });
-    // console.log(lab.report);
 
     lab.markModified('report');
     await lab.save();
@@ -121,7 +118,7 @@ const updateLabScore = tryCatch(async(req, res, next) => {
     if(!batch) return next(new ErrorHandler("Not linked to any batch", 404));
 
     const index = batch.labs.indexOf(labId);
-    console.log(index);
+   
     for(let i = 0; i < lab.report.length; i++) {
         const prevScore = batch.report[i][`lab${index+1}`];
         batch.report[i][`lab${index+1}`] = lab.report[i].score;
@@ -129,7 +126,6 @@ const updateLabScore = tryCatch(async(req, res, next) => {
         batch.report[i].totalScore += (batch.report[i][`lab${index+1}`] - prevScore);
 
         console.log(prevScore , batch.report[i][`lab${index+1}`],batch.report[i].totalScore);
-        // batch.report[i].totalScore = 0 ;
     }
     
     batch.markModified('report');
@@ -151,7 +147,6 @@ const extendLab = tryCatch(async(req,res) => {
     const { labId } = req.params;
     const lab = await Lab.findById(labId);
     if(!lab) return next(new ErrorHandler("Incorrect labId",404));
-    console.log(req.body.extendTime , labId);
     const extendTime  = req.body.extendTime;
     
     await lab.extendLab(extendTime);
@@ -264,8 +259,6 @@ const createData = async (lab, rollNumber, questionId, count, script) => {
     for(let i=0;i<lab.questions.length;i++){
         finalScore  = finalScore + studentReport[`question${i+1}`];
     }
-    console.log(finalScore);
-    // studentReport.score -= studentReport[`question${index+1}`];
     studentReport.score = finalScore ;
 
     lab.markModified('report');

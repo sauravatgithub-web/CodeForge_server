@@ -1,7 +1,6 @@
 import User from '../models/userModel.js';
 import Question from '../models/questionModel.js';
 import Lab from '../models/labModel.js';
-import Report from '../models/reportModal.js';
 import { createSubmission } from '../controller/submissionController.js'
 import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler } from '../utils/utility.js';

@@ -7,11 +7,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please tell us your name!']
   },
-  rollNumber: {
-    type: String,
-    required: [true, "Please provide a roll number"],
-    unique: true,
-  },
   email: {
     type: String,
     required: [true, 'Please provide your email'],
@@ -23,64 +18,24 @@ const userSchema = new mongoose.Schema({
     type : String,
     default : 'default.jpg'
   },
-  role: {
-    type: String,
-    enum: ['admin', 'teacher', 'student'],
-    default: 'student'
-  },
   password: {
     type: String,
     required: [true, 'Please provide a password'],
     minlength: 8,
     select: false
   },
-  questionsSolved: [
+  iplTeam: {
+    type: String,
+    required: [true, "Please select your team!"]
+  },
+  cart: [
     {
       type: Types.ObjectId,
-      ref: "Question",
+      ref: "Product"
     }
-  ],
-  active: {
-    type: Boolean,
-    default: true,
-    select: false
-  },
-  secretQuestion: {
-    type: String,
-    required: [true, "Please enter a secret question"],
-    required: true,
-  },
-  secretAnswer: {
-    type: String,
-    required: [true, "Please enter a secret answer"],
-    required: true,
-  },
-  github: {
-    type: String,
-    default: "",
-  },
-  linkedin: {
-    type: String,
-    default: "",
-  },
-  leetcode: {
-    type: String,
-    default: "",
-  },
-  codechef: {
-    type: String,
-    default: "",
-  },
-  codeforces: {
-    type: String,
-    default: "",
-  },
-  batch: {
-    type: String,
-  }
+  ]
 });
 
-// using middleware will help in not saving the confirm password
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();  
   this.password = await hash(this.password, 10);

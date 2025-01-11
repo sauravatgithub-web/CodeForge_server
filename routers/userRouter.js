@@ -10,9 +10,10 @@ import {
     logOut,
     uploadUserPhoto,
     resizeUserPhoto,
+    updateMyBatch
 } from '../controller/userController.js'
 import { isAuthenticated } from '../middlewares/auth.js';
-import { otpValidator, validate } from '../lib/validator.js';
+import { emailValidator, otpValidator, validate } from '../lib/validator.js';
 
 const router = express.Router();
 
@@ -29,6 +30,7 @@ router.post('/setPassword', setNewPassword);
 // user must be logged in
 router.use(isAuthenticated); 
 router.get("/me", getMyProfile);
+router.put("/updateBatch", updateMyBatch);
 router.get("/logOut", logOut);
 
 export default router;

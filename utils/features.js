@@ -10,7 +10,7 @@ const cookieOption = {
 
 const connectDB = (uri) => {
     mongoose
-        .connect(uri, {dbname: "iplNexus"})
+        .connect(uri, {dbname: "CodeForge"})
         .then((data) => console.log(`Connected to MongoDb: ${data.connection.host}`))
         .catch((err) => { throw err })
 };

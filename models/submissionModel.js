@@ -10,8 +10,7 @@ const submissionSchema = new mongoose.Schema({
     required:[true,"Please input the script"]
   },
   time: {
-    type: String,
-    required: [true, 'Please provide the expected time complexity!']
+    type: String
   },
   space: {
     type: String,

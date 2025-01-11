@@ -2,6 +2,7 @@ import User from '../models/userModel.js';
 import Question from '../models/questionModel.js';
 import Lab from '../models/labModel.js';
 import Teacher from '../models/teacherModel.js';
+import Submission from '../models/submissionModel.js';
 import { createSubmission } from '../controller/submissionController.js'
 import { tryCatch } from '../middlewares/error.js';
 import { ErrorHandler } from '../utils/utility.js';
@@ -124,13 +125,13 @@ const submitCode = tryCatch(async(req, res, next) => {
     const questionId = req.params.id;
     if(!userId || !questionId || !script || !language || !versionIndex) 
         return next(new ErrorHandler("Please fill all fields", 404));
-  
+    
     const user = await User.findById(userId);
     if(!user) return next(new ErrorHandler("Invalid id", 404));
-  
+    
     const question = await Question.findById(questionId);
     if(!question) return next(new ErrorHandler("Invalid id", 404));
-  
+    
     const stdin = question.testCase.reduce((final, val) => final + val + " ", question.testCase.length + " ");
     let stdout = question.answer.reduce((final, val) => final + val + "\n", "");
   
@@ -154,7 +155,6 @@ const submitCode = tryCatch(async(req, res, next) => {
     const data = response.data;
     data.output = data.output + "\n";
 
-  
     if(data.output === stdout) {
         if(data.cpuTime >= question.time) {
             return res.status(data.statusCode).json({ success: false, message: "Time Limit Exceeded" });
@@ -168,7 +168,7 @@ const submitCode = tryCatch(async(req, res, next) => {
             user.questionsSolved.push(question._id);
             await user.save();
         }
-
+        
         // to create Submission
         const submissionData = {
             name : questionId+userId,

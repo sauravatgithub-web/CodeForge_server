@@ -8,6 +8,7 @@ const cookieOption = {
     secure: true, 
 }
 
+// connect to the mongoDB database
 const connectDB = (uri) => {
     mongoose
         .connect(uri, {dbname: "CodeForge"})

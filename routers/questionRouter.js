@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.get('/getQuestions', getAllQuestions);
 router.get('/:id', getThisQuestion);
-router.get('/getQuestions/:id', getTeacherQuestions);
+router.get('/getQuestions/:id', getTeacherQuestions); // get questions posted by teacher with id
 router.post('/runCode/:id', runCode);
 router.post('/submitCode/:id', submitCode);
 router.post('/createQuestion',createQuestion);

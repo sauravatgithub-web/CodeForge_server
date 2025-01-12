@@ -25,9 +25,12 @@ const getThisQuestion = tryCatch(async(req, res, next) => {
 
 const getTeacherQuestions = tryCatch(async(req, res, next) => {
     const id = req.params.id;
+
+    // find the teacher
     const teacher = await Teacher.findById(id);
     if(!teacher) return next(new ErrorHandler("Incorrect id", 404));
 
+    // finds the question posted by the teacher
     let myQuestions = [];
     const questionPromises = teacher.questions.map(async (id) => {
         return await Question.findById(id);
@@ -43,6 +46,7 @@ const createQuestion = tryCatch(async(req, res, next)=>{
     if(!title || !description || !tags || !testCase || !answer || !hints || !constraints || !time || !space || !teacherId) 
         return next(new ErrorHandler("Insufficient input",404));
 
+    // find the teacher
     const teacher = await Teacher.findById(teacherId);
     if(!teacher) return next(new ErrorHandler("Wrong teacher id", 404));
 
@@ -58,6 +62,8 @@ const createQuestion = tryCatch(async(req, res, next)=>{
         space,
         labId
     }
+
+    // create new question
     const newQuestion = await Question.create(reqData);
     teacher.questions.push(newQuestion._id);
     await teacher.save();
@@ -70,6 +76,8 @@ const updateQuestion = tryCatch(async(req, res, next)=>{
     if(!title || !description || !tags || !testCase || !answer || !hints || !constraints || !time || !space || !questionId) 
         return next(new ErrorHandler("Insufficient input",404));
 
+
+    // find the question using id
     const question = await Question.findById(questionId);
     if(!question) return next(new ErrorHandler("Incorrect question id", 404));
 
@@ -82,6 +90,8 @@ const updateQuestion = tryCatch(async(req, res, next)=>{
     });
 
     const lab = await Lab.findById(question.labId);
+
+    // update the tag of the question 
     for(let q of lab.questions) {
         if(q.id == questionId) {
             q.tag = tags[0];

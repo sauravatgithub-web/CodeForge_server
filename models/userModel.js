@@ -47,13 +47,11 @@ const userSchema = new mongoose.Schema({
   },
   secretQuestion: {
     type: String,
-    required: [true, "Please enter a secret question"],
-    required: true,
+    required: [true, "Please enter a secret question"]
   },
   secretAnswer: {
     type: String,
-    required: [true, "Please enter a secret answer"],
-    required: true,
+    required: [true, "Please enter a secret answer"]
   },
   github: {
     type: String,

@@ -70,6 +70,8 @@ labSchema.methods.startLab = async function() {
 };
 
 labSchema.methods.extendLab = async function(extendTime){
+
+    // to extend the time of lab after it is started
     if(!this.isStart) throw new ErrorHandler('Lab is not started!');
     this.duration+=extendTime;
     await this.save();

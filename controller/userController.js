@@ -276,6 +276,15 @@ const getMyProfile = tryCatch(async(req, res) => {
   })
 }); 
 
+const getOtherProfile = tryCatch(async(req, res, next) => {
+  const { userName, role } = req.body;
+  let user;
+  if(role == "student") user = await User.findOne({ userName });
+  if(role == "teacher") user = await Teacher.findOne({ userName });
+  if(!user) return next(new ErrorHandler("False username entered.", 404));
+  return user;
+})
+
 const logOut = tryCatch(async(req, res) => {
   return res
       .status(200)
@@ -338,6 +347,7 @@ export {
   forgetPassword, 
   setNewPassword, 
   getMyProfile, 
+  getOtherProfile,
   logOut, 
   emailVerification, 
   confirmOTP,

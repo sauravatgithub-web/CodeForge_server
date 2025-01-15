@@ -14,6 +14,14 @@ const teacherSchema = new mongoose.Schema({
         lowercase: true,
         validate: [validator.isEmail, 'Please provide a valid email'],
     },
+    username :{
+        type : String,
+        unique : true,
+        default : function(){
+          const emailPart = this.email.toLowerCase().split('@')[0];
+          return emailPart;
+        }
+    },
     photo: {
         type: String,
         default: 'default.jpg'

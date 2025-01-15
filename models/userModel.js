@@ -19,6 +19,15 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     validate: [validator.isEmail, 'Please provide a valid email'],
   },
+  username :{
+    type : String,
+    unique : true,
+    default : function(){
+      const namePart = this.name.toLowerCase().split(' ');
+      const emailPart = this.email.toLowerCase().split('@')[0];
+      return `${namePart.join('_')}_${emailPart}`;
+    }
+  },
   photo: {
     type : String,
     default : 'default.jpg'

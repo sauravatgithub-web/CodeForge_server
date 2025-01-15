@@ -316,7 +316,21 @@ const updateMyBatch = tryCatch(async(req, res) => {
   }
 
   return res.status(200).json({ success : true });
-})
+});
+
+const updateUserName = tryCatch(async(req,res)=>{
+  const newUserName = req.body;
+  let user;
+  if(userRole === "student") user = await User.findById(req.user); 
+  else user = await Teacher.findById(req.user); 
+
+  if(!user) return next(new ErrorHandler("User / Teacher not found",404));
+
+  user.username = newUserName;
+  await user.save();
+  
+  return res.status(200).json({ success : true });
+});
 
 export { 
   newUser, 
@@ -329,5 +343,6 @@ export {
   confirmOTP,
   uploadUserPhoto, 
   resizeUserPhoto,
-  updateMyBatch
+  updateMyBatch,
+  updateUserName
 }

@@ -320,6 +320,41 @@ const getOtherProfile = tryCatch(async (req, res, next) => {
 	});
 });
 
+const getAllOtherProfile = tryCatch(async (req, res, next) => {
+	const { userName, role } = req.query; // Access query parameters
+
+	// Check if userName or role is missing
+	if (!userName || !role) {
+		return next(new ErrorHandler("Incomplete query: userName and role are required.", 400));
+	}
+
+	console.log(`Fetching profiles starting with userName: ${userName}, role: ${role}`);
+
+	// Define the regex for "starts with"
+	const regex = new RegExp(`^${userName}`, "i"); // Case-insensitive regex
+
+	// Fetch users based on role
+	let users;
+	if (role === "student") {
+		users = await User.find({ userName: regex }); // Find users whose usernames start with `userName`
+	} else if (role === "teacher") {
+		users = await Teacher.find({ userName: regex }); // Find teachers whose usernames start with `userName`
+	} else {
+		return next(new ErrorHandler("Invalid role provided.", 400));
+	}
+
+	// Check if users exist
+	if (!users || users.length === 0) {
+		return next(new ErrorHandler("No users found with the given username prefix.", 404));
+	}
+
+	// Send the user data as a response
+	res.status(200).json({
+		success: true,
+		users,
+	});
+});
+
 const logOut = tryCatch(async (req, res) => {
 	return res
 		.status(200)
@@ -384,6 +419,7 @@ export {
 	setNewPassword,
 	getMyProfile,
 	getOtherProfile,
+	getAllOtherProfile,
 	logOut,
 	emailVerification,
 	confirmOTP,

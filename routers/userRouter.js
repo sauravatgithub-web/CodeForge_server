@@ -8,6 +8,7 @@ import {
     setNewPassword,
     getMyProfile,
     getOtherProfile,
+    getAllOtherProfile,
     logOut,
     uploadUserPhoto,
     resizeUserPhoto,
@@ -33,6 +34,7 @@ router.post('/setPassword', setNewPassword);
 router.use(isAuthenticated); 
 router.get("/me", getMyProfile);
 router.get("/other", getOtherProfile);
+router.get("/allOther",getAllOtherProfile);
 router.put("/updateBatch", updateMyBatch);
 router.get("/updateUserName",updateUserName);
 router.get("/logOut", logOut);

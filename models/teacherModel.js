@@ -51,12 +51,18 @@ const teacherSchema = new mongoose.Schema({
 			type: String,
 		},
 	],
+	role: {
+		type: String,
+		enum: ['admin', 'teacher', 'student'],
+		default: 'teacher'
+	  }
 });
 
 // using middleware will help in not saving the confirm password
-teacherSchema.pre("save", function (next) {
+teacherSchema.pre("save", async function (next) {
 	if (!this.isModified("password")) return next();
-	this.password = hash(this.password, 10);
+	this.password = await hash(this.password, 10); 
+	next();
 });
 
 const Teacher = mongoose.model("Teacher", teacherSchema);

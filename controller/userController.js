@@ -214,16 +214,17 @@ const newUser = tryCatch(async (req, res, next) => {
 		let user;
 		if (email[0] === "2") {
 			user = await createStudent(name, email, password, secretQuestion, secretAnswer);
-		} else {
+		} 
+		else {
 			console.log(123450);
 			const teacher = await Teacher.create({
 				name,
 				email,
 				password,
 				secretQuestion,
-				secretAnswer,
-				role: "teacher",
+				secretAnswer
 			});
+			console.log(123451);
 			user = teacher;
 			console.log(user);
 		}

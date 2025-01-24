@@ -236,7 +236,7 @@ const newUser = tryCatch(async (req, res, next) => {
 });
 
 const login = tryCatch(async (req, res, next) => {
-	const { email, password } = req.body;
+	const { email, password} = req.body;
 	if (!email || !password) {
 		return next(new ErrorHandler("Please fill all the fields", 404));
 	}
@@ -248,7 +248,7 @@ const login = tryCatch(async (req, res, next) => {
 	if (!user) return next(new ErrorHandler("Invalid credentials", 404));
 
 	const isMatch = await bcrypt.compare(password, user.password);
-	if (!isMatch) return next(new ErrorHandler("Invalid credentials", 404));
+	if (!isMatch) return next(new ErrorHandler("Invalid credentials", 401));
 
 	userRole = user.role;
 	sendToken(res, user, 200, `Welcome back, ${user.name}`);

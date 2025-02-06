@@ -246,7 +246,7 @@ const newUser = tryCatch(async (req, res, next) => {
 });
 
 const login = tryCatch(async (req, res, next) => {
-	const { email, password} = req.body;
+	const { email, password, toRemember } = req.body;
 	if (!email || !password) {
 		return next(new ErrorHandler("Please fill all the fields", 404));
 	}
@@ -260,8 +260,8 @@ const login = tryCatch(async (req, res, next) => {
 	if (!isMatch) return next(new ErrorHandler("Invalid credentials", 401));
 
 	userRole = user.role;
-	sendToken(res, user, 200, `Welcome back, ${user.name}`);
-	return user;
+	if(toRemember) sendToken(res, user, 200, `Welcome back, ${user.name}`);
+	return res.status(200).json({ success: true, message: `Welcome back, ${user.name}`, user: user });
 });
 
 const forgetPassword = tryCatch(async (req, res, next) => {

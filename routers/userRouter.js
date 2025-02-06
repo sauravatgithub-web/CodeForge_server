@@ -12,7 +12,8 @@ import {
     uploadUserPhoto,
     resizeUserPhoto,
     updateMyBatch,
-    updateUserName
+    updateUserName,
+    verifyAnswer
 } from '../controller/userController.js'
 import { isAuthenticated } from '../middlewares/auth.js';
 import { emailValidator, otpValidator, validate } from '../lib/validator.js';
@@ -28,6 +29,7 @@ router.post('/new', uploadUserPhoto, resizeUserPhoto, newUser);
 router.post('/login', login);
 router.post('/forgetPassword', forgetPassword);
 router.post('/setPassword', setNewPassword);
+router.post('/verifyAnswer', verifyAnswer);
 
 // user must be logged in
 router.use(isAuthenticated); 

@@ -82,14 +82,15 @@ const emailVerification = tryCatch(async (req, res, next) => {
 });
 
 const confirmOTP = tryCatch(async (req, res, next) => {
-	const { email, resetting, otp, secretAnswer } = req.body;
+	// const { email, resetting, otp, secretAnswer } = req.body;
+	const { email, resetting, otp } = req.body;
 	if (!email || !otp) return next(new ErrorHandler("Please fill all fields", 404));
 
-	if (resetting && !secretAnswer) return next(new ErrorHandler("Please fill secret answer", 404));
+	// if (resetting && !secretAnswer) return next(new ErrorHandler("Please fill secret answer", 404));
 
 	const user = await User.findOne({ email });
-	if (resetting && secretAnswer !== user.secretAnswer)
-		return next(new ErrorHandler("Please give coreect answer", 404));
+	// if (resetting && secretAnswer !== user.secretAnswer)
+	// 	return next(new ErrorHandler("Please give coreect answer", 404));
 
 	const sharedOTP = emailTokens[email];
 
@@ -98,6 +99,16 @@ const confirmOTP = tryCatch(async (req, res, next) => {
 	} else if (sharedOTP && sharedOTP.otp != otp) {
 		return res.status(400).json({ success: false, message: "Incorrect OTP entered." });
 	} else return res.status(400).json({ success: false, message: "OTP expired." });
+});
+
+const verifyAnswer = tryCatch(async (req, res, next) => {
+	const { email, resetting, secretAnswer } = req.body;
+	if (!email || !secretAnswer) return next(new ErrorHandler("Please fill all fields", 404));
+
+	const user = await User.findOne({ email });
+	if (secretAnswer !== user.secretAnswer)
+		return res.status(400).json({ success: false, message: "Incorrect Answer." });
+	return res.status(200).json({ success: true, message: "Answer verified successfully." });
 });
 
 async function createStudent(name, email, password, secretQuestion, secretAnswer) {
@@ -215,7 +226,6 @@ const newUser = tryCatch(async (req, res, next) => {
 		if (email[0] === "2") {
 			user = await createStudent(name, email, password, secretQuestion, secretAnswer);
 		} else {
-			console.log(123450);
 			const teacher = await Teacher.create({
 				name,
 				email,
@@ -245,7 +255,6 @@ const login = tryCatch(async (req, res, next) => {
 	else user = await Teacher.findOne({ email }).select("+password");
 
 	if (!user) return next(new ErrorHandler("Invalid credentials", 404));
-
 	const isMatch = await bcrypt.compare(password, user.password);
 	if (!isMatch) return next(new ErrorHandler("Invalid credentials", 404));
 
@@ -271,11 +280,8 @@ const setNewPassword = tryCatch(async (req, res, next) => {
 
 	const user = await User.findOne({ email });
 	if (!user) return next(new ErrorHandler("User do not exists", 404));
-
-	const newPassword = await hash(password, 10);
-	user.password = newPassword;
+	user.password = password;
 	await user.save();
-
 	return res.status(200).json({ success: true, user: user, message: "Password has been updated." });
 });
 
@@ -390,4 +396,5 @@ export {
 	resizeUserPhoto,
 	updateMyBatch,
 	updateUserName,
+	verifyAnswer,
 };

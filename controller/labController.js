@@ -244,22 +244,33 @@ const createData = async (lab, rollNumber, questionId, count, script) => {
     const report = lab.report;
     const studentReport = report.find((student) => student.rollNumber === rollNumber);
     let index = -1;
-
     for(let i = 0; i < lab.questions.length; i++) {
         if(lab.questions[i].id == questionId) {
             index = i;
             break;
         }
     }
+    
     studentReport[`question${index+1}`] = count;
     studentReport[`code${index+1}`] = script;
+    
+    const easyMarks = 20;
+    const mediumMarks = 30;
+    const hardMarks = 50;
 
-    let finalScore =0;
-    for(let i=0;i<lab.questions.length;i++){
-        finalScore  = finalScore + studentReport[`question${i+1}`];
+    let finalScore = 0;
+    for(let i = 0; i < lab.questions.length; i++) {
+        const questionKey = lab.questions[i];
+       
+        let score = studentReport[`question${i+1}`] / questionKey.numTestCase;        
+        
+        if(questionKey.tag === 'easy') score *= easyMarks; 
+        else if(questionKey.tag === 'medium') score *= mediumMarks;
+        else score *= hardMarks;
+        finalScore  = finalScore + score;
     }
-    studentReport.score = finalScore ;
-
+    studentReport.score = Math.round((finalScore / lab.totalMarks) * 100);
+    
     lab.markModified('report');
     await lab.save();
 };

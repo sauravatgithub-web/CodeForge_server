@@ -27,6 +27,16 @@ const labSchema = new mongoose.Schema({
             type: Object
         }
     ],
+    totalMarks: {
+        type: Number,
+        default : function() {
+            let marks = 0;
+            for(let i = 0; i < this.questions.length; i++) {
+                marks += (this.questions[i].tag==="easy") ? 20 : (this.questions[i].tag==="medium") ? 30 : 50; 
+            }
+            return marks;
+        }
+    },
     duration: {
         type : Number,
         required: [true,"Please enter the duration"]

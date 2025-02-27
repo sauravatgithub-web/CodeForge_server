@@ -132,31 +132,42 @@ async function createStudent(name, email, password, secretQuestion, secretAnswer
 	if (!batch) {
 		batch = await Batch.create({ name: batchName });
 		batch.students.push(user._id);
-		batch.report = [
-			{
-				rollNumber: user.rollNumber,
-				name: user.name,
-				totalScore: 0,
-			},
-		];
+		let reportEntry = {
+			rollNumber: user.rollNumber,
+			name: user.name,
+			totalScore: 0,
+		};
+	
+		batch.labs.forEach((_, index) => {
+			reportEntry[`lab${index + 1}`] = 0;
+		});
+	
+		batch.report = [reportEntry];
 		await batch.save();
-	} else {
+	} 
+	else {
 		batch = await Batch.findOne({ name: batchName }).populate("students", "_id rollNumber name");
 		const studentList = batch.students;
 
 		const report = batch.report;
 		let added = false;
 
+		let reportEntry = {
+			rollNumber: user.rollNumber,
+			name: user.name,
+			totalScore: 0,
+		};
+	
+		batch.labs.forEach((_, index) => {
+			reportEntry[`lab${index + 1}`] = 0;
+		});
+
 		for (let i = 0; i < studentList.length; i++) {
 			const studentRollNumberCheck = studentList[i].rollNumber.slice(5) * 1;
 
 			if (studentRollNumberCheck > rollNumberCheck) {
 				studentList.splice(i, 0, user._id);
-				report.splice(i, 0, {
-					rollNumber: user.rollNumber,
-					name: user.name,
-					totalScore: 0,
-				});
+				report.splice(i, 0, reportEntry);
 				added = true;
 				break;
 			}
@@ -164,11 +175,7 @@ async function createStudent(name, email, password, secretQuestion, secretAnswer
 
 		if (!added) {
 			studentList.push(user._id);
-			report.push({
-				rollNumber: user.rollNumber,
-				name: user.name,
-				totalScore: 0,
-			});
+			report.push(reportEntry);
 		}
 
 		batch.markModified("report");
@@ -214,19 +221,17 @@ async function createStudent(name, email, password, secretQuestion, secretAnswer
 
 const newUser = tryCatch(async (req, res, next) => {
 	const { name, email, password, secretQuestion, secretAnswer } = req.body;
-	// console.log(req.body);
 
 	if (!name || !email || !password || !secretQuestion || !secretAnswer) {
 		return next(new ErrorHandler("Please fill all fields", 404));
 	}
-	// console.log(req.body);
 
 	try {
 		let user;
 		if (email[0] === "2") {
 			user = await createStudent(name, email, password, secretQuestion, secretAnswer);
-		} else {
-			console.log(123450);
+		} 
+		else {
 			const teacher = await Teacher.create({
 				name,
 				email,
@@ -234,12 +239,12 @@ const newUser = tryCatch(async (req, res, next) => {
 				secretQuestion,
 				secretAnswer
 			});
-			console.log(123451);
 			user = teacher;
 			console.log(user);
 		}
 		sendToken(res, user, 200, `Welcome to Code Forge`);
-	} catch (error) {
+	} 
+	catch (error) {
 		console.error("Error creating user:", error);
 		return next(new ErrorHandler("An error occurred while creating the user", 500));
 	}
@@ -371,35 +376,37 @@ const logOut = tryCatch(async (req, res) => {
 		});
 });
 
-const updateMyBatch = tryCatch(async (req, res) => {
+const getMyBatch = tryCatch(async(req, res , next) => {
+	const userId = req.params.userId;
+	const user = await User.findById(userId);
+	if(user) return res.status(200).json({ success: true });
+	const teacher = await Teacher.findById(userId);
+	if (!teacher) return next(new ErrorHandler("Teacher not found", 404));
+	else return res.status(200).json({ success: true, batches: teacher.batch });
+})
+
+const updateMyBatch = tryCatch(async (req, res, next) => {
 	const { userId, batches } = req.body;
 	if (!userId || !batches) return next(new ErrorHandler("Not all fields satisfied", 404));
 
 	const teacher = await Teacher.findById(userId);
 	if (!teacher) return next(new ErrorHandler("Teacher not found", 404));
+
 	const oldBatches = teacher.batch;
-	let newBatches = [],
-		removedBatches = [];
-
-	for (const batch of batches) {
-		if (!oldBatches.includes(batch)) newBatches.push(batch);
-	}
-	for (const batch of oldBatches) {
-		if (!batches.includes(batch)) removedBatches.push(batch);
-	}
-
+	let newBatches = batches.filter(batch => !oldBatches.includes(batch));
+    let removedBatches = oldBatches.filter(batch => !batches.includes(batch));
+	
 	teacher.batch = batches;
 	await teacher.save();
-	for (const batch of newBatches) {
-		const batchToModify = await Batch.findOne({ name: batch });
-		batchToModify.teacher = teacher._id;
-		await batchToModify.save();
-	}
-	for (const batch of removedBatches) {
-		const batchToModify = await Batch.findOne({ name: batch });
-		batchToModify.teacher = null;
-		await batchToModify.save();
-	}
+
+	await Batch.updateMany(
+        { name: { $in: newBatches } },
+        { $set: { teacher: teacher._id } }
+    );
+    await Batch.updateMany(
+        { name: { $in: removedBatches } },
+        { $set: { teacher: null } }
+    );
 
 	return res.status(200).json({ success: true });
 });
@@ -431,6 +438,7 @@ export {
 	confirmOTP,
 	uploadUserPhoto,
 	resizeUserPhoto,
+	getMyBatch,
 	updateMyBatch,
 	updateUserName,
 	verifyAnswer,

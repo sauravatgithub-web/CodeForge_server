@@ -68,7 +68,7 @@ const createQuestion = tryCatch(async(req, res, next)=>{
     teacher.questions.push(newQuestion._id);
     await teacher.save();
 
-    return res.status(200).json({ sucess: true, data: newQuestion });
+    return res.status(200).json({ success: true, data: newQuestion });
 })
 
 const updateQuestion = tryCatch(async(req, res, next)=>{

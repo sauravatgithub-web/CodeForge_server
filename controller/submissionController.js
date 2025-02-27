@@ -15,12 +15,12 @@ const getThisSubmission = tryCatch(async(req, res, next) => {
     return res.status(200).json({ success: true, submission: submission });
 });
 
-const createSubmission = tryCatch(async({name, time, space, script}) => {
+const createSubmission = tryCatch(async({ name, time, space, script }) => {
     const submission = {
         name, time, space, script
     }
     await Submission.create(submission);
-    console.log("Hello");
+    return;
 })
 
 

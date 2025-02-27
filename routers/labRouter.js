@@ -15,7 +15,7 @@ const router = express.Router();
 router.get('/getAllLabs', getAllLabs);
 router.get('/:batch', getThisLab);
 router.post('/createLab', createLab);
-router.post('/updateLab', updateLab);
+router.put('/updateLab', updateLab);
 router.put('/updateScore', updateLabScore);
 router.post('/startLab/:labId',startLab);
 router.post('/extendLab/:labId',extendLab);

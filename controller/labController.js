@@ -97,7 +97,7 @@ const updateLab = tryCatch(async (req, res, next) => {
     }
 
     await lab.save();
-    res.status(200).json({ success: true, lab });
+    return res.status(200).json({ success: true, lab });
 });
 
 const updateLabScore = tryCatch(async(req, res, next) => {

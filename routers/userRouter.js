@@ -12,6 +12,7 @@ import {
     logOut,
     uploadUserPhoto,
     resizeUserPhoto,
+    getMyBatch,
     updateMyBatch,
     updateUserName,
     verifyAnswer
@@ -38,6 +39,7 @@ router.get("/me", getMyProfile);
 router.get("/other", getOtherProfile);
 router.get("/allOther",getAllOtherProfile);
 router.put("/updateBatch", updateMyBatch);
+router.get("/my/:userId", getMyBatch);
 router.get("/updateUserName",updateUserName);
 router.get("/logOut", logOut);
 

@@ -24,48 +24,48 @@ const getThisLab = tryCatch(async(req, res, next) => {
 
 const createLab = tryCatch(async (req, res, next) => {
     const { topic, batch, duration, date } = req.body;
-    if (!topic || !batch || !duration) return next(new ErrorHandler("Insufficient fields", 404));
+    if (!topic || !batch || !duration) {
+        return next(new ErrorHandler("Insufficient fields", 404));
+    }
 
-    const batchInfo = await Batch.findOne({ name: batch });
+    // Find the batch and ensure it has students
+    const batchInfo = await Batch.findOne({ name: batch }).populate("students", "rollNumber name");
     if (!batchInfo || batchInfo.students.length === 0) {
-      return next(new ErrorHandler("Batch not found or has no students", 404));
-    }   
+        return next(new ErrorHandler("Batch not found or has no students", 404));
+    }
 
-    const reportPromises = batchInfo.students.map(async (id) => {
-      const user = await User.findById(id);
-      
-      return {
-        rollNumber: user.rollNumber,
-        name: user.name,
+    // Prepare report based on batch students
+    const report = batchInfo.students.map(student => ({
+        rollNumber: student.rollNumber,
+        name: student.name,
         score: 0
-      };
+    }));
+
+    // Create new Lab
+    const newLab = await Lab.create({
+        topic,
+        batch,
+        duration,
+        date,
+        report
     });
-    const report = await Promise.all(reportPromises);
-  
-    const newLab = {
-      topic,
-      batch,
-      duration,
-      date,
-      report
-    };
-  
-    const lab = await Lab.create(newLab);
 
-    batchInfo.labs.push(lab._id);
-    let numLabs = batchInfo.labs.length;
+    // Add Lab reference to Batch
+    batchInfo.labs.push(newLab._id);
+    const numLabs = batchInfo.labs.length;
 
+    // Initialize new lab scores in batch report
     batchInfo.report = batchInfo.report.map(student => {
-        student[`lab${numLabs}`] = 0;
+        student[`lab${numLabs}`] = 0
         return student;
     });
 
-    batchInfo.markModified('report');
+    batchInfo.markModified("report");
     await batchInfo.save();
 
-    return res.status(200).json({ success: true, lab });
+    return res.status(200).json({ success: true, lab: newLab });
 });
- 
+
 
 const updateLab = tryCatch(async (req, res, next) => {
     const { labId, questionArray } = req.body;
@@ -100,38 +100,70 @@ const updateLab = tryCatch(async (req, res, next) => {
     return res.status(200).json({ success: true, lab });
 });
 
-const updateLabScore = tryCatch(async(req, res, next) => {
+// const updateLabScore = tryCatch(async(req, res, next) => {
+//     const { labId, scores } = req.body;
+//     const lab = await Lab.findById(labId);
+//     if(!lab) return next(new ErrorHandler("Incorrect lab id..", 404));
+
+
+//     lab.report.forEach((reportItem, index) => {
+//         reportItem.score = scores[index];
+//     });
+
+//     lab.markModified('report');
+//     await lab.save();
+
+//     const batch = await Batch.findOne({ name: lab.batch });
+//     if(!batch) return next(new ErrorHandler("Not linked to any batch", 404));
+
+//     const index = batch.labs.indexOf(labId);
+   
+//     for(let i = 0; i < lab.report.length; i++) {
+//         // const prevScore = batch.report[i][`lab${index+1}`];
+//         batch.report[i][`lab${index+1}`] = lab.report[i].score;
+
+//         // batch.report[i].totalScore += (batch.report[i][`lab${index+1}`] - prevScore);
+
+//         // console.log(prevScore , batch.report[i][`lab${index+1}`], batch.report[i].totalScore);
+//     }
+    
+//     batch.markModified('report');
+//     await batch.save();
+
+//     return res.status(200).json({ success: true, message: "All updates done successfully." });
+// });
+
+const updateLabScore = tryCatch(async (req, res, next) => {
     const { labId, scores } = req.body;
     const lab = await Lab.findById(labId);
-    if(!lab) return next(new ErrorHandler("Incorrect lab id..", 404));
+    if (!lab) return next(new ErrorHandler("Incorrect lab id..", 404));
 
-
+    // Update lab scores
     lab.report.forEach((reportItem, index) => {
         reportItem.score = scores[index];
     });
-
-    lab.markModified('report');
+    lab.markModified("report");
     await lab.save();
 
+    // Find the batch
     const batch = await Batch.findOne({ name: lab.batch });
-    if(!batch) return next(new ErrorHandler("Not linked to any batch", 404));
+    if (!batch) return next(new ErrorHandler("Not linked to any batch", 404));
 
-    const index = batch.labs.indexOf(labId);
-   
-    for(let i = 0; i < lab.report.length; i++) {
-        const prevScore = batch.report[i][`lab${index+1}`];
-        batch.report[i][`lab${index+1}`] = lab.report[i].score;
+    const labIndex = batch.labs.indexOf(labId);
+    if (labIndex === -1) return next(new ErrorHandler("Lab not found in batch", 404));
 
-        batch.report[i].totalScore += (batch.report[i][`lab${index+1}`] - prevScore);
+    // Update batch report with new lab scores
+    lab.report.forEach((reportItem, i) => {        
+        batch.report[i][`lab${labIndex + 1}`] = reportItem.score * 1;
+    });
 
-        console.log(prevScore , batch.report[i][`lab${index+1}`],batch.report[i].totalScore);
-    }
-    
-    batch.markModified('report');
+    // Recalculate total scores
+    batch.markModified("report");
     await batch.save();
 
     return res.status(200).json({ success: true, message: "All updates done successfully." });
 });
+
 
 const startLab = tryCatch(async (req, res, next) => {
     const { labId } = req.params;

@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import http from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -28,6 +29,17 @@ connectDB(mongoURI);
 
 const app = express();
 const server = http.createServer(app);
+
+app.disable('x-powered-by');
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", 'trusted-cdn.com'],
+        }
+    },
+    frameguard: { action: 'deny' },
+}));  
 
 app.use(express.json());
 app.use(cookieParser());
